@@ -16,12 +16,22 @@
 */
 package org.opencps.pki;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.cert.Certificate;
+import java.util.Calendar;
 
+import javax.imageio.ImageIO;
+
+import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
@@ -39,6 +49,8 @@ public class PdfSigner implements ServerSigner {
 
     private Certificate cert;
     private PdfReader reader;
+    private SignatureImage signatureImage;
+    private String signatureFieldName;
 
     /**
      * 
@@ -94,17 +106,70 @@ public class PdfSigner implements ServerSigner {
         // TODO Auto-generated method stub
         return null;
     }
+    
+    public void setSignatureGraphic(String imagePath) {
+        signatureImage = new SignatureImage(imagePath);
+    }
 
-    protected void createEmptySignature(String dest, String fieldName) throws DocumentException, IOException, GeneralSecurityException {
-        // todo calculate size of image is it set
+    protected void createEmptySignature(String dest) throws DocumentException, IOException, GeneralSecurityException {
         FileOutputStream os = new FileOutputStream(dest);
         PdfStamper stamper = PdfStamper.createSignature(reader, os, '\0');
         PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
-        appearance.setVisibleSignature(new Rectangle(36, 748, 144, 780), 1, fieldName);
+        signatureFieldName = appearance.getNewSigName();
+
         if (cert != null) {
             appearance.setCertificate(cert);
         }
+        appearance.setSignDate(Calendar.getInstance());
+        appearance.setLocation("OpenCPS");
+        appearance.setContact("OpenCPS");
+        if (signatureImage != null) {
+        	appearance.setSignatureGraphic(signatureImage.getImage());
+        	appearance.setRenderingMode(PdfSignatureAppearance.RenderingMode.GRAPHIC);
+        	
+        	int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
+        	int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
+        	float llx = 36.0f;
+        	float lly = 748.0f;
+        	float urx = llx + signatureImageWidth;
+        	float ury = lly + signatureImageHeight;
+        	appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
+        }
+        else {
+            appearance.setVisibleSignature(new Rectangle(36, 748, 144, 780), 1, signatureFieldName);
+        }
         ExternalSignatureContainer external = new ExternalBlankSignatureContainer(PdfName.ADOBE_PPKLITE, PdfName.ADBE_PKCS7_DETACHED);
         MakeSignature.signExternalContainer(appearance, external, 8192);
+    }
+    
+    class SignatureImage {
+        private BufferedImage bufferedImage;
+
+        private Image image;
+
+        public SignatureImage(String imagePath) {
+            try {
+				image = Image.getInstance(imagePath);
+                InputStream is = new FileInputStream(new File(imagePath));
+                bufferedImage = ImageIO.read(is);
+            }
+            catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            catch (BadElementException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        public BufferedImage getBufferedImage() {
+            return bufferedImage;
+        }
+        
+        public Image getImage() {
+        	return image;
+        }
     }
 }
