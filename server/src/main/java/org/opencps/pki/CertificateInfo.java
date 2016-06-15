@@ -32,63 +32,63 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
  */
 public class CertificateInfo {
 
-	private X509Certificate cert;
-	
-	private X500Name x500name;
-	
-	/**
-	 * Constructor
-	 * @throws CertificateEncodingException 
-	 */
-	public CertificateInfo(X509Certificate cert) throws CertificateEncodingException {
-		this.cert = cert;
-		x500name = new JcaX509CertificateHolder(this.cert).getSubject();
-	}
-	
-	/**
-	 * Get common name of certificate
-	 */
-	public String getCommonName() {
-		RDN cn = x500name.getRDNs(BCStyle.CN)[0];
-		return IETFUtils.valueToString(cn.getFirst().getValue());
-	}
-	
-	/**
-	 * Get organization unit of certificate
-	 */
-	public String getOrganizationUnit() {
-		RDN cn = x500name.getRDNs(BCStyle.OU)[0];
-		return IETFUtils.valueToString(cn.getFirst().getValue());
-	}
-	
-	/**
-	 * Get organization of certificate
-	 */
-	public String getOrganization() {
-		RDN cn = x500name.getRDNs(BCStyle.O)[0];
-		return IETFUtils.valueToString(cn.getFirst().getValue());
-	}
-	
-	/**
-	 * Get email of certificate
-	 */
-	public String getEmail() {
-		RDN cn = x500name.getRDNs(BCStyle.E)[0];
-		return IETFUtils.valueToString(cn.getFirst().getValue());
-	}
-	
-	/**
-	 * Get serial number of certificate
-	 */
-	public String getSerialNumber() {
-		return cert.getSerialNumber().toString();
-	}
-	
-	/**
-	 * Get certificate
-	 */
-	public X509Certificate getCertificate() {
-		return cert;
-	}
+    private X509Certificate cert;
+
+    private X500Name x500name;
+
+    /**
+     * Constructor
+     * @throws CertificateEncodingException 
+     */
+    public CertificateInfo(X509Certificate cert) throws CertificateEncodingException {
+        this.cert = cert;
+        x500name = new JcaX509CertificateHolder(this.cert).getSubject();
+    }
+
+    /**
+     * Get common name of certificate
+     */
+    public String getCommonName() {
+        RDN cn = x500name.getRDNs(BCStyle.CN)[0];
+        return IETFUtils.valueToString(cn.getFirst().getValue());
+    }
+
+    /**
+     * Get organization unit of certificate
+     */
+    public String getOrganizationUnit() {
+        RDN cn = x500name.getRDNs(BCStyle.OU)[0];
+        return IETFUtils.valueToString(cn.getFirst().getValue());
+    }
+
+    /**
+     * Get organization of certificate
+     */
+    public String getOrganization() {
+        RDN cn = x500name.getRDNs(BCStyle.O)[0];
+        return IETFUtils.valueToString(cn.getFirst().getValue());
+    }
+
+    /**
+     * Get email of certificate
+     */
+    public String getEmail() {
+        RDN cn = x500name.getRDNs(BCStyle.E)[0];
+        return IETFUtils.valueToString(cn.getFirst().getValue());
+    }
+
+    /**
+     * Get serial number of certificate
+     */
+    public String getSerialNumber() {
+        return cert.getSerialNumber().toString();
+    }
+
+    /**
+     * Get certificate
+     */
+    public X509Certificate getCertificate() {
+        return cert;
+    }
 
 }

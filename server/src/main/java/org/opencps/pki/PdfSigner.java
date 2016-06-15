@@ -115,7 +115,7 @@ public class PdfSigner implements ServerSigner {
      * @param hashAlgorithm
      */
     public PdfSigner setHashAlgorithm(HashAlgorithm hashAlgorithm) {
-    	this.hashAlgorithm = hashAlgorithm;
+        this.hashAlgorithm = hashAlgorithm;
         return this;
     }
 
@@ -231,8 +231,8 @@ public class PdfSigner implements ServerSigner {
     }
 
     public PdfSigner setSignatureFieldName(String fieldName) {
-    	signatureFieldName = fieldName;
-    	return this;
+        signatureFieldName = fieldName;
+        return this;
     }
     
     class SignatureImage {
