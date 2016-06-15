@@ -37,7 +37,10 @@ import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
 import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.security.BouncyCastleDigest;
+import com.itextpdf.text.pdf.security.DigestAlgorithms;
 import com.itextpdf.text.pdf.security.ExternalBlankSignatureContainer;
+import com.itextpdf.text.pdf.security.ExternalDigest;
 import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
 import com.itextpdf.text.pdf.security.MakeSignature;
 
@@ -48,33 +51,31 @@ import com.itextpdf.text.pdf.security.MakeSignature;
 public class PdfSigner implements ServerSigner {
 
     private Certificate cert;
-    private PdfReader reader;
+
     private SignatureImage signatureImage;
+
     private String signatureFieldName;
+    
+    private String originFilePath;
+    
+    private String tempFilePath;
+
+    private String signedFilePath;
 
     /**
      * 
      */
     public PdfSigner(String filePath) {
-        try {
-            reader = new PdfReader(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        originFilePath = filePath;
+        tempFilePath = stripExtension(filePath) + ".temp.pdf";
+        signedFilePath = stripExtension(filePath) + ".signed.pdf";
     }
 
     public PdfSigner(Certificate cert, String filePath) {
-        try {
-            reader = new PdfReader(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        originFilePath = filePath;
+        tempFilePath = stripExtension(filePath) + ".temp.pdf";
+        signedFilePath = stripExtension(filePath) + ".signed.pdf";
         this.cert= cert;
-    }
-
-    @Override
-    public byte[] computeHash() {
-        return new byte[0];
     }
 
     @Override
@@ -96,50 +97,125 @@ public class PdfSigner implements ServerSigner {
     }
 
     @Override
-    public String sign(byte[] signature) {
-        // TODO Auto-generated method stub
-        return null;
+    public byte[] computeHash() {
+        byte hash[] = null;
+        try {
+            PdfReader reader = new PdfReader(this.originFilePath);
+            FileOutputStream os = new FileOutputStream(tempFilePath);
+            PdfStamper stamper = PdfStamper.createSignature(reader, os, '\0');
+            PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
+            signatureFieldName = appearance.getNewSigName();
+            if (cert != null) {
+                appearance.setCertificate(cert);
+            }
+            appearance.setSignDate(Calendar.getInstance());
+            appearance.setLocation("OpenCPS PKI");
+            appearance.setContact("OpenCPS PKI");
+            if (signatureImage != null) {
+                appearance.setSignatureGraphic(signatureImage.getImage());
+                appearance.setRenderingMode(PdfSignatureAppearance.RenderingMode.GRAPHIC);
+                
+                int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
+                int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
+                float llx = 36.0f;
+                float lly = 748.0f;
+                float urx = llx + signatureImageWidth;
+                float ury = lly + signatureImageHeight;
+                appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
+            }
+            else {
+                appearance.setVisibleSignature(new Rectangle(36, 748, 144, 780), 1, signatureFieldName);
+            }
+            ExternalSignatureContainer external = new ExternalBlankSignatureContainer(PdfName.ADOBE_PPKLITE, PdfName.ADBE_PKCS7_DETACHED);
+            MakeSignature.signExternalContainer(appearance, external, 8192);
+            
+            ExternalDigest digest = new BouncyCastleDigest();
+            hash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest("SHA256"));
+            reader.close();
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        }
+        return hash;
     }
 
     @Override
-    public String sign(byte[] signature, String filePath) {
-        // TODO Auto-generated method stub
-        return null;
+    public Boolean sign(byte[] signature) {
+        return sign(signature, tempFilePath);
+    }
+
+    @Override
+    public Boolean sign(byte[] signature, String filePath) {
+        Boolean signed = false;
+        File file = new File(filePath);
+        if (file.exists()) {
+            try {
+                FileOutputStream os = new FileOutputStream(signedFilePath);
+                PdfReader reader = new PdfReader(filePath);
+                if (reader.isEncrypted()) {
+                    signed = false;
+                }
+                ExternalSignatureContainer container = new ClientSignatureContainer(signature);
+                MakeSignature.signDeferred(reader, signatureFieldName, os, container);
+                reader.close();
+                os.close();
+                signed = true;
+            } catch (IOException e) {
+                signed = false;
+            } catch (DocumentException e) {
+                signed = false;
+            } catch (GeneralSecurityException e) {
+                signed = false;
+            }
+        }
+        return signed;
     }
     
     public void setSignatureGraphic(String imagePath) {
         signatureImage = new SignatureImage(imagePath);
     }
+    
+    /**
+     * Get origin file path of pdf document
+     */
+    public String getOriginFilePath() {
+        return originFilePath;
+    }
+    
+    /**
+     * Get temporary file path of pdf document
+     */
+    public String getTempFilePath() {
+        return tempFilePath;
+    }
+    
+    /**
+     * Get file path of signed pdf document
+     */
+    public String getSignedFilePath() {
+        return signedFilePath;
+    }
+    
+    /**
+     * Get signature field name pdf document
+     */
+    public String getSignatureFieldName() {
+        return signatureFieldName;
+    }
 
-    protected void createEmptySignature(String dest) throws DocumentException, IOException, GeneralSecurityException {
-        FileOutputStream os = new FileOutputStream(dest);
-        PdfStamper stamper = PdfStamper.createSignature(reader, os, '\0');
-        PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
-        signatureFieldName = appearance.getNewSigName();
-
-        if (cert != null) {
-            appearance.setCertificate(cert);
+    public static String stripExtension(String string) {
+        if (string == null) {
+            return null;
         }
-        appearance.setSignDate(Calendar.getInstance());
-        appearance.setLocation("OpenCPS");
-        appearance.setContact("OpenCPS");
-        if (signatureImage != null) {
-        	appearance.setSignatureGraphic(signatureImage.getImage());
-        	appearance.setRenderingMode(PdfSignatureAppearance.RenderingMode.GRAPHIC);
-        	
-        	int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
-        	int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
-        	float llx = 36.0f;
-        	float lly = 748.0f;
-        	float urx = llx + signatureImageWidth;
-        	float ury = lly + signatureImageHeight;
-        	appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
+        int n = string.lastIndexOf(".");
+        if (n == -1) {
+            return string;
         }
-        else {
-            appearance.setVisibleSignature(new Rectangle(36, 748, 144, 780), 1, signatureFieldName);
-        }
-        ExternalSignatureContainer external = new ExternalBlankSignatureContainer(PdfName.ADOBE_PPKLITE, PdfName.ADBE_PKCS7_DETACHED);
-        MakeSignature.signExternalContainer(appearance, external, 8192);
+        return string.substring(0, n);
     }
     
     class SignatureImage {
@@ -149,7 +225,7 @@ public class PdfSigner implements ServerSigner {
 
         public SignatureImage(String imagePath) {
             try {
-				image = Image.getInstance(imagePath);
+                image = Image.getInstance(imagePath);
                 InputStream is = new FileInputStream(new File(imagePath));
                 bufferedImage = ImageIO.read(is);
             }
@@ -169,7 +245,7 @@ public class PdfSigner implements ServerSigner {
         }
         
         public Image getImage() {
-        	return image;
+            return image;
         }
     }
 }

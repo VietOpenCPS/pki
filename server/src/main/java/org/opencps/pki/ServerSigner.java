@@ -35,7 +35,7 @@ public interface ServerSigner {
     
     public String getHashAlgorithm();
     
-    public String sign(byte[] signature);
+    public Boolean sign(byte[] signature);
 
-    public String sign(byte[] signature, String filePath);
+    public Boolean sign(byte[] signature, String filePath);
 }
