@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.Calendar;
 
 import javax.imageio.ImageIO;
@@ -49,7 +50,7 @@ import com.itextpdf.text.pdf.security.MakeSignature;
  */
 public class PdfSigner implements ServerSigner {
 
-    private Certificate cert;
+    private X509Certificate cert;
 
     private SignatureImage signatureImage;
 
@@ -81,7 +82,7 @@ public class PdfSigner implements ServerSigner {
      * @param filePath The path of pdf document
      * @param cert The certificate of user
      */
-    public PdfSigner(String filePath, Certificate cert) {
+    public PdfSigner(String filePath, X509Certificate cert) {
         originFilePath = filePath;
         tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
@@ -90,7 +91,7 @@ public class PdfSigner implements ServerSigner {
     }
 
     @Override
-    public Certificate readCertificate(byte[] cert) {
+    public CertificateInfo readCertificate(byte[] cert) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -149,7 +150,7 @@ public class PdfSigner implements ServerSigner {
                 appearance.setVisibleSignature(new Rectangle(36, 748, 144, 780), 1, signatureFieldName);
             }
             ExternalSignatureContainer external = new ExternalBlankSignatureContainer(PdfName.ADOBE_PPKLITE, PdfName.ADBE_PKCS7_DETACHED);
-            MakeSignature.signExternalContainer(appearance, external, 8192);
+            MakeSignature.signExternalContainer(appearance, external, 12384);
             
             ExternalDigest digest = new BouncyCastleDigest();
             hash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest(hashAlgorithm.toString()));

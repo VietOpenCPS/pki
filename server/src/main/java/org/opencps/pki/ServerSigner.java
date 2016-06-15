@@ -27,7 +27,7 @@ import java.security.cert.Certificate;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public interface ServerSigner {
-    public Certificate readCertificate(byte[] cert);
+    public CertificateInfo readCertificate(byte[] cert);
     
     public Boolean validateCertificate(Certificate cert);
 
