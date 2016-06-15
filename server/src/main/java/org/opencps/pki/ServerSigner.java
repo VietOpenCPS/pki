@@ -33,7 +33,7 @@ public interface ServerSigner {
 
     public byte[] computeHash();
     
-    public String getHashAlgorithm();
+    public HashAlgorithm getHashAlgorithm();
     
     public Boolean sign(byte[] signature);
 

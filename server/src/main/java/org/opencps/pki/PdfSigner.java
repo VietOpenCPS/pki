@@ -45,8 +45,7 @@ import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
 import com.itextpdf.text.pdf.security.MakeSignature;
 
 /**
- * @author nguyennv
- *
+ * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class PdfSigner implements ServerSigner {
 
@@ -61,20 +60,32 @@ public class PdfSigner implements ServerSigner {
     private String tempFilePath;
 
     private String signedFilePath;
+    
+    private HashAlgorithm hashAlgorithm;
 
     /**
-     * 
+     * Constructor
+     *
+     * @param filePath The path of pdf document
      */
     public PdfSigner(String filePath) {
         originFilePath = filePath;
-        tempFilePath = stripExtension(filePath) + ".temp.pdf";
-        signedFilePath = stripExtension(filePath) + ".signed.pdf";
+        tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
+        signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
+        hashAlgorithm = HashAlgorithm.SHA256;
     }
 
-    public PdfSigner(Certificate cert, String filePath) {
+    /**
+     * Constructor
+     *
+     * @param filePath The path of pdf document
+     * @param cert The certificate of user
+     */
+    public PdfSigner(String filePath, Certificate cert) {
         originFilePath = filePath;
-        tempFilePath = stripExtension(filePath) + ".temp.pdf";
-        signedFilePath = stripExtension(filePath) + ".signed.pdf";
+        tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
+        signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
+        hashAlgorithm = HashAlgorithm.SHA256;
         this.cert= cert;
     }
 
@@ -90,10 +101,21 @@ public class PdfSigner implements ServerSigner {
         return null;
     }
 
+    /**
+     * Get hash algorithm
+     */
     @Override
-    public String getHashAlgorithm() {
-        // TODO Auto-generated method stub
-        return null;
+    public HashAlgorithm getHashAlgorithm() {
+        return hashAlgorithm;
+    }
+
+    /**
+     * Set hash algorithm
+     * @param hashAlgorithm
+     */
+    public PdfSigner setHashAlgorithm(HashAlgorithm hashAlgorithm) {
+    	this.hashAlgorithm = hashAlgorithm;
+        return this;
     }
 
     @Override
@@ -130,7 +152,7 @@ public class PdfSigner implements ServerSigner {
             MakeSignature.signExternalContainer(appearance, external, 8192);
             
             ExternalDigest digest = new BouncyCastleDigest();
-            hash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest("SHA256"));
+            hash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest(hashAlgorithm.toString()));
             reader.close();
             os.close();
         } catch (IOException e) {
@@ -192,14 +214,14 @@ public class PdfSigner implements ServerSigner {
     public String getTempFilePath() {
         return tempFilePath;
     }
-    
+
     /**
      * Get file path of signed pdf document
      */
     public String getSignedFilePath() {
         return signedFilePath;
     }
-    
+
     /**
      * Get signature field name pdf document
      */
@@ -207,15 +229,9 @@ public class PdfSigner implements ServerSigner {
         return signatureFieldName;
     }
 
-    public static String stripExtension(String string) {
-        if (string == null) {
-            return null;
-        }
-        int n = string.lastIndexOf(".");
-        if (n == -1) {
-            return string;
-        }
-        return string.substring(0, n);
+    public PdfSigner setSignatureFieldName(String fieldName) {
+    	signatureFieldName = fieldName;
+    	return this;
     }
     
     class SignatureImage {
