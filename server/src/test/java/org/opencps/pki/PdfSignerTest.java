@@ -67,8 +67,8 @@ public class PdfSignerTest extends TestCase {
     }
     
     public void testFilePath() {
-    	assertEquals(pdfPath, signer.getOriginFilePath());
-    	assertEquals("./src/test/java/resources/opencps.temp.pdf", signer.getTempFilePath());
-    	assertEquals("./src/test/java/resources/opencps.signed.pdf", signer.getSignedFilePath());
+        assertEquals(pdfPath, signer.getOriginFilePath());
+        assertEquals("./src/test/java/resources/opencps.temp.pdf", signer.getTempFilePath());
+        assertEquals("./src/test/java/resources/opencps.signed.pdf", signer.getSignedFilePath());
     }
 }

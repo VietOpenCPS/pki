@@ -50,12 +50,12 @@ public class BaseSignerTest extends TestCase {
     CertificateFactory cf;
     BaseSigner signer;
 
-	/**
-	 * 
-	 */
-	public BaseSignerTest(String testName) {
-		super(testName);
-	}
+    /**
+     * 
+     */
+    public BaseSignerTest(String testName) {
+        super(testName);
+    }
 
     /**
      * @return the suite of tests being tested
@@ -72,32 +72,32 @@ public class BaseSignerTest extends TestCase {
     }
 
     public void testReadCertificate() throws IOException {
-    	byte[] encoded = Files.readAllBytes(Paths.get(certPath));
-    	String string = new String(encoded, StandardCharsets.UTF_8);
+        byte[] encoded = Files.readAllBytes(Paths.get(certPath));
+        String string = new String(encoded, StandardCharsets.UTF_8);
 
-    	CertificateInfo byteInfo = signer.readCertificate(encoded);
-    	assertEquals("OpenCPS PKI", byteInfo.getCommonName());
+        CertificateInfo byteInfo = signer.readCertificate(encoded);
+        assertEquals("OpenCPS PKI", byteInfo.getCommonName());
 
-    	CertificateInfo stringInfo = signer.readCertificate(string);
-    	assertEquals("OpenCPS PKI", stringInfo.getCommonName());
+        CertificateInfo stringInfo = signer.readCertificate(string);
+        assertEquals("OpenCPS PKI", stringInfo.getCommonName());
     }
     
     public void testValidateCertificate() throws CertificateException, KeyStoreException, NoSuchAlgorithmException, IOException {
-    	assertFalse(signer.validateCertificate(cert));
+        assertFalse(signer.validateCertificate(cert));
 
-    	KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-    	ks.load(null, null);
+        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+        ks.load(null, null);
 
-    	ks.setCertificateEntry("digicert", cf.generateCertificate(new FileInputStream(rootCaPath)));
-    	ks.setCertificateEntry("digicert-server", cf.generateCertificate(new FileInputStream(serverCaPath)));
+        ks.setCertificateEntry("digicert", cf.generateCertificate(new FileInputStream(rootCaPath)));
+        ks.setCertificateEntry("digicert-server", cf.generateCertificate(new FileInputStream(serverCaPath)));
 
-    	X509Certificate ghCert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(ghCertPath)));
-    	assertTrue(signer.validateCertificate(ghCert, ks));
+        X509Certificate ghCert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(ghCertPath)));
+        assertTrue(signer.validateCertificate(ghCert, ks));
     }
     
     public void testHashAlgorithm() {
-    	signer.setHashAlgorithm(HashAlgorithm.SHA512);
-    	assertEquals(HashAlgorithm.SHA512, signer.getHashAlgorithm());
+        signer.setHashAlgorithm(HashAlgorithm.SHA512);
+        assertEquals(HashAlgorithm.SHA512, signer.getHashAlgorithm());
     }
 
 }

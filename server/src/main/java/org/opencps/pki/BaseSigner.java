@@ -47,7 +47,7 @@ public abstract class BaseSigner implements ServerSigner {
      * Constructor
      */
     public BaseSigner() {
-    	hashAlgorithm = HashAlgorithm.SHA256;
+        hashAlgorithm = HashAlgorithm.SHA256;
     }
 
     /**
