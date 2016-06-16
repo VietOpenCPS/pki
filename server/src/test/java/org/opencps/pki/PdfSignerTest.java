@@ -23,25 +23,21 @@ import junit.framework.TestSuite;
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class HelperTest extends TestCase {
+public class PdfSignerTest extends TestCase {
 
-    /**
-     * Create the test case
-     */
-    public HelperTest(String testName) {
-        super(testName);
-    }
+	/**
+	 * Create the test case
+	 */
+	public PdfSignerTest(String testName) {
+		// TODO Auto-generated constructor stub
+	}
 
     /**
      * @return the suite of tests being tested
      */
     public static Test suite()
     {
-        return new TestSuite(HelperTest.class);
-    }
-    
-    public void testStripFileExtension() {
-        assertEquals("/tmp/test", Helper.stripFileExtension("/tmp/test.txt"));
+        return new TestSuite(PdfSignerTest.class);
     }
 
 }
