@@ -17,7 +17,6 @@
 package org.opencps.pki;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -27,10 +26,7 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.CRL;
-import java.security.cert.CRLException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -49,7 +45,6 @@ import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
 import com.itextpdf.text.pdf.PdfStamper;
-import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.text.pdf.security.BouncyCastleDigest;
 import com.itextpdf.text.pdf.security.CRLVerifier;
 import com.itextpdf.text.pdf.security.CertificateUtil;
@@ -70,7 +65,7 @@ import com.itextpdf.text.pdf.security.VerificationOK;
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class PdfSigner implements ServerSigner {
+public class PdfSigner extends BaseSigner {
 
     /**
      * X509 certificate
@@ -101,11 +96,6 @@ public class PdfSigner implements ServerSigner {
      * Signed Pdf document file path
      */
     private String signedFilePath;
-    
-    /**
-     * Hash algorithm
-     */
-    private HashAlgorithm hashAlgorithm;
 
     /**
      * Constructor
@@ -131,68 +121,6 @@ public class PdfSigner implements ServerSigner {
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
         hashAlgorithm = HashAlgorithm.SHA256;
         this.cert= cert;
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#readCertificate()
-     */
-    @Override
-    public CertificateInfo readCertificate(byte[] bytes) {
-        try {
-            InputStream is = new ByteArrayInputStream(bytes);
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) cf.generateCertificate(is);
-            return new CertificateInfo(cert);
-        } catch (CertificateException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#readCertificate()
-     */
-    @Override
-    public CertificateInfo readCertificate(String cert) {
-        return readCertificate(cert.getBytes());
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#validateCertificate()
-     */
-    @Override
-    public Boolean validateCertificate(X509Certificate cert) {
-        try {
-            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-            return validateCertificate(cert, ks);
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#validateCertificate()
-     */
-    @Override
-    public Boolean validateCertificate(X509Certificate cert, KeyStore ks) {
-        try {
-            List<VerificationException> errors = CertificateVerification.verifyCertificates(new Certificate[] { cert }, ks, Calendar.getInstance());
-            if (errors.size() == 0) {
-                CRL crl = CertificateUtil.getCRL(cert);
-                if (crl != null) {
-                    return !crl.isRevoked(cert);
-                }
-                return true;
-            }
-            else {
-                return false;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -257,24 +185,6 @@ public class PdfSigner implements ServerSigner {
             verification.addAll(crlVerifier.verify(signCert, issuerCert, date));
         }
         return verification.size() > 0;
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#getHashAlgorithm()
-     */
-    @Override
-    public HashAlgorithm getHashAlgorithm() {
-        return hashAlgorithm;
-    }
-
-    /**
-     * Set hash algorithm
-     * @param hashAlgorithm
-     */
-    public PdfSigner setHashAlgorithm(HashAlgorithm hashAlgorithm) {
-        this.hashAlgorithm = hashAlgorithm;
-        return this;
     }
 
     /**
