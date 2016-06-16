@@ -16,6 +16,7 @@
 */
 package org.opencps.pki;
 
+import java.security.KeyStore;
 import java.security.cert.Certificate;
 
 /**
@@ -27,9 +28,17 @@ import java.security.cert.Certificate;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public interface ServerSigner {
-    public CertificateInfo readCertificate(byte[] cert);
+    public CertificateInfo readCertificate(byte[] bytes);
+
+	CertificateInfo readCertificate(String cert);
     
     public Boolean validateCertificate(Certificate cert);
+    
+    public Boolean validateCertificate(Certificate cert, KeyStore ks);
+    
+    public Boolean verifySignature(String filePath);
+
+    public Boolean verifySignature(String filePath, KeyStore ks);
 
     public byte[] computeHash();
     

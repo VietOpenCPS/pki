@@ -17,51 +17,83 @@
 package org.opencps.pki;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.imageio.ImageIO;
-
-import com.itextpdf.text.BadElementException;
-import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
 import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.text.pdf.security.BouncyCastleDigest;
+import com.itextpdf.text.pdf.security.CertificateUtil;
+import com.itextpdf.text.pdf.security.CertificateVerification;
 import com.itextpdf.text.pdf.security.DigestAlgorithms;
 import com.itextpdf.text.pdf.security.ExternalBlankSignatureContainer;
 import com.itextpdf.text.pdf.security.ExternalDigest;
 import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
+import com.itextpdf.text.pdf.security.LtvTimestamp;
 import com.itextpdf.text.pdf.security.MakeSignature;
+import com.itextpdf.text.pdf.security.PdfPKCS7;
+import com.itextpdf.text.pdf.security.TSAClient;
+import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
+import com.itextpdf.text.pdf.security.VerificationException;
 
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class PdfSigner implements ServerSigner {
 
+    /**
+     * X509 certificate
+     */
     private X509Certificate cert;
 
+    /**
+     * Signature image
+     */
     private SignatureImage signatureImage;
 
+    /**
+     * signature field name
+     */
     private String signatureFieldName;
     
+    /**
+     * Origin Pdf document file path
+     */
     private String originFilePath;
     
+    /**
+     * Temporary Pdf document file path after generate hash key
+     */
     private String tempFilePath;
 
+    /**
+     * Signed Pdf document file path
+     */
     private String signedFilePath;
     
+    /**
+     * Hash algorithm
+     */
     private HashAlgorithm hashAlgorithm;
 
     /**
@@ -91,15 +123,80 @@ public class PdfSigner implements ServerSigner {
     }
 
     @Override
-    public CertificateInfo readCertificate(byte[] cert) {
-        // TODO Auto-generated method stub
-        return null;
+    public CertificateInfo readCertificate(byte[] bytes) {
+        try {
+            InputStream is = new ByteArrayInputStream(bytes);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(is);
+            return new CertificateInfo(cert);
+        } catch (CertificateException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public CertificateInfo readCertificate(String cert) {
+        return readCertificate(Base64.decode(cert));
     }
 
     @Override
     public Boolean validateCertificate(Certificate cert) {
-        // TODO Auto-generated method stub
-        return null;
+        try {
+            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+            return validateCertificate(cert, ks);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Boolean validateCertificate(Certificate cert, KeyStore ks) {
+        List<VerificationException> errors = CertificateVerification.verifyCertificates(new Certificate[] { cert }, ks, Calendar.getInstance());
+        if (errors.size() == 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public Boolean verifySignature(String filePath) {
+        try {
+            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+            return verifySignature(filePath, ks);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Boolean verifySignature(String filePath, KeyStore ks) {
+        Boolean verified = false;
+        int errorNumber = 0;
+        try {
+            PdfReader reader = new PdfReader(filePath);
+            AcroFields fields = reader.getAcroFields();
+            ArrayList<String> names = fields.getSignatureNames();
+            for (String name : names) {
+                PdfPKCS7 pkcs7 = fields.verifySignature(name);
+                Certificate[] certs = pkcs7.getSignCertificateChain();
+                Calendar cal = pkcs7.getSignDate();
+                List<VerificationException> errors = CertificateVerification.verifyCertificates(certs, ks, cal);
+                if (errors.size() > 0) {
+                    errorNumber += errors.size();
+                }
+                else {
+                    
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (errorNumber == 0) {
+            
+        }
+        return verified;
     }
 
     /**
@@ -122,15 +219,26 @@ public class PdfSigner implements ServerSigner {
     @Override
     public byte[] computeHash() {
         byte hash[] = null;
+        int contentEstimated = 8192;
         try {
             PdfReader reader = new PdfReader(this.originFilePath);
             FileOutputStream os = new FileOutputStream(tempFilePath);
             PdfStamper stamper = PdfStamper.createSignature(reader, os, '\0');
             PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
             signatureFieldName = appearance.getNewSigName();
+            TSAClient tsaClient = null;
             if (cert != null) {
                 appearance.setCertificate(cert);
+                String tsaUrl = CertificateUtil.getTSAURL(cert);
+                if (tsaUrl != null) {
+                    tsaClient = new TSAClientBouncyCastle(tsaUrl);
+                }
             }
+            if (tsaClient != null) {
+                LtvTimestamp.timestamp(appearance, tsaClient, signatureFieldName);
+                contentEstimated += 4096;
+            }
+
             appearance.setSignDate(Calendar.getInstance());
             appearance.setLocation("OpenCPS PKI");
             appearance.setContact("OpenCPS PKI");
@@ -150,18 +258,14 @@ public class PdfSigner implements ServerSigner {
                 appearance.setVisibleSignature(new Rectangle(36, 748, 144, 780), 1, signatureFieldName);
             }
             ExternalSignatureContainer external = new ExternalBlankSignatureContainer(PdfName.ADOBE_PPKLITE, PdfName.ADBE_PKCS7_DETACHED);
-            MakeSignature.signExternalContainer(appearance, external, 12384);
+            MakeSignature.signExternalContainer(appearance, external, contentEstimated);
             
             ExternalDigest digest = new BouncyCastleDigest();
             hash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest(hashAlgorithm.toString()));
             reader.close();
             os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return hash;
     }
@@ -187,17 +291,13 @@ public class PdfSigner implements ServerSigner {
                 reader.close();
                 os.close();
                 signed = true;
-            } catch (IOException e) {
-                signed = false;
-            } catch (DocumentException e) {
-                signed = false;
-            } catch (GeneralSecurityException e) {
-                signed = false;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
         return signed;
     }
-    
+
     public void setSignatureGraphic(String imagePath) {
         signatureImage = new SignatureImage(imagePath);
     }
@@ -246,14 +346,8 @@ public class PdfSigner implements ServerSigner {
                 InputStream is = new FileInputStream(new File(imagePath));
                 bufferedImage = ImageIO.read(is);
             }
-            catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-            catch (BadElementException e) {
-                e.printStackTrace();
+            catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
         
