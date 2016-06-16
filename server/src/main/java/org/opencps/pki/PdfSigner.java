@@ -155,7 +155,7 @@ public class PdfSigner implements ServerSigner {
      */
     @Override
     public CertificateInfo readCertificate(String cert) {
-        return readCertificate(Base64.decode(cert));
+        return readCertificate(cert.getBytes());
     }
 
     /**
@@ -190,7 +190,7 @@ public class PdfSigner implements ServerSigner {
             else {
                 return false;
             }
-        } catch (CertificateException | CRLException | IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
