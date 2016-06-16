@@ -28,23 +28,54 @@ import java.security.cert.X509Certificate;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public interface ServerSigner {
+
+    /**
+     * Read certificate
+     */
     public CertificateInfo readCertificate(byte[] bytes);
 
-	CertificateInfo readCertificate(String cert);
+    /**
+     * Read certificate
+     */
+    public CertificateInfo readCertificate(String cert);
     
+    /**
+     * Validate X509 certificate
+     */
     public Boolean validateCertificate(X509Certificate cert);
     
+    /**
+     * Validate X509 certificate
+     */
     public Boolean validateCertificate(X509Certificate cert, KeyStore ks);
     
+    /**
+     * Verify signature of document
+     */
     public Boolean verifySignature(String filePath);
 
+    /**
+     * Verify signature of document
+     */
     public Boolean verifySignature(String filePath, KeyStore ks);
 
+    /**
+     * Compute hash key
+     */
     public byte[] computeHash();
     
+    /**
+     * Get hash algorithm
+     */
     public HashAlgorithm getHashAlgorithm();
     
+    /**
+     * Attach signature to document
+     */
     public Boolean sign(byte[] signature);
 
+    /**
+     * Attach signature to document
+     */
     public Boolean sign(byte[] signature, String filePath);
 }

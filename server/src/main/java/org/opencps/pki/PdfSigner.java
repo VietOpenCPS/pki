@@ -35,7 +35,6 @@ import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -134,6 +133,10 @@ public class PdfSigner implements ServerSigner {
         this.cert= cert;
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#readCertificate()
+     */
     @Override
     public CertificateInfo readCertificate(byte[] bytes) {
         try {
@@ -146,11 +149,19 @@ public class PdfSigner implements ServerSigner {
         }
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#readCertificate()
+     */
     @Override
     public CertificateInfo readCertificate(String cert) {
         return readCertificate(Base64.decode(cert));
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#validateCertificate()
+     */
     @Override
     public Boolean validateCertificate(X509Certificate cert) {
         try {
@@ -161,6 +172,10 @@ public class PdfSigner implements ServerSigner {
         }
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#validateCertificate()
+     */
     @Override
     public Boolean validateCertificate(X509Certificate cert, KeyStore ks) {
         try {
@@ -180,6 +195,10 @@ public class PdfSigner implements ServerSigner {
         }
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#verifySignature()
+     */
     @Override
     public Boolean verifySignature(String filePath) {
         try {
@@ -190,6 +209,10 @@ public class PdfSigner implements ServerSigner {
         }
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#verifySignature()
+     */
     @Override
     public Boolean verifySignature(String filePath, KeyStore ks) {
         Boolean verified = false;
@@ -237,7 +260,8 @@ public class PdfSigner implements ServerSigner {
     }
 
     /**
-     * Get hash algorithm
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#getHashAlgorithm()
      */
     @Override
     public HashAlgorithm getHashAlgorithm() {
@@ -253,6 +277,10 @@ public class PdfSigner implements ServerSigner {
         return this;
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#computeHash()
+     */
     @Override
     public byte[] computeHash() {
         byte hash[] = null;
@@ -307,11 +335,19 @@ public class PdfSigner implements ServerSigner {
         return hash;
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#sign()
+     */
     @Override
     public Boolean sign(byte[] signature) {
         return sign(signature, tempFilePath);
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.ServerSigner#sign()
+     */
     @Override
     public Boolean sign(byte[] signature, String filePath) {
         Boolean signed = false;
@@ -334,6 +370,9 @@ public class PdfSigner implements ServerSigner {
         return signed ? verifySignature(filePath) : false;
     }
 
+    /**
+     * Set signature graphic
+     */
     public void setSignatureGraphic(String imagePath) {
         signatureImage = new SignatureImage(imagePath);
     }
@@ -371,11 +410,17 @@ public class PdfSigner implements ServerSigner {
         return this;
     }
     
+    /**
+     * Signature image class
+     */
     class SignatureImage {
         private BufferedImage bufferedImage;
 
         private Image image;
 
+        /**
+         * Constructor
+         */
         public SignatureImage(String imagePath) {
             try {
                 image = Image.getInstance(imagePath);
@@ -387,10 +432,16 @@ public class PdfSigner implements ServerSigner {
             }
         }
         
+        /**
+         * Get buffered image object
+         */
         public BufferedImage getBufferedImage() {
             return bufferedImage;
         }
         
+        /**
+         * Get image object
+         */
         public Image getImage() {
             return image;
         }
