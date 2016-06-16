@@ -183,7 +183,7 @@ public class PdfSigner implements ServerSigner {
             if (errors.size() == 0) {
                 CRL crl = CertificateUtil.getCRL(cert);
                 if (crl != null) {
-                    return crl.isRevoked(cert);
+                    return !crl.isRevoked(cert);
                 }
                 return true;
             }
