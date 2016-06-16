@@ -17,7 +17,7 @@
 package org.opencps.pki;
 
 import java.security.KeyStore;
-import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 
 /**
  * Server signer interface
@@ -32,9 +32,9 @@ public interface ServerSigner {
 
 	CertificateInfo readCertificate(String cert);
     
-    public Boolean validateCertificate(Certificate cert);
+    public Boolean validateCertificate(X509Certificate cert);
     
-    public Boolean validateCertificate(Certificate cert, KeyStore ks);
+    public Boolean validateCertificate(X509Certificate cert, KeyStore ks);
     
     public Boolean verifySignature(String filePath);
 

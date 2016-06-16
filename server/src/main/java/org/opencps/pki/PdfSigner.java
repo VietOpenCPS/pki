@@ -25,12 +25,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.cert.CRL;
+import java.security.cert.CRLException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -140,7 +143,7 @@ public class PdfSigner implements ServerSigner {
     }
 
     @Override
-    public Boolean validateCertificate(Certificate cert) {
+    public Boolean validateCertificate(X509Certificate cert) {
         try {
             KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
             return validateCertificate(cert, ks);
@@ -150,13 +153,21 @@ public class PdfSigner implements ServerSigner {
     }
 
     @Override
-    public Boolean validateCertificate(Certificate cert, KeyStore ks) {
-        List<VerificationException> errors = CertificateVerification.verifyCertificates(new Certificate[] { cert }, ks, Calendar.getInstance());
-        if (errors.size() == 0) {
-            return true;
-        }
-        else {
-            return false;
+    public Boolean validateCertificate(X509Certificate cert, KeyStore ks) {
+        try {
+            List<VerificationException> errors = CertificateVerification.verifyCertificates(new Certificate[] { cert }, ks, Calendar.getInstance());
+            if (errors.size() == 0) {
+                CRL crl = CertificateUtil.getCRL(cert);
+                if (crl != null) {
+                    return crl.isRevoked(cert);
+                }
+                return true;
+            }
+            else {
+                return false;
+            }
+        } catch (CertificateException | CRLException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -281,21 +292,20 @@ public class PdfSigner implements ServerSigner {
         File file = new File(filePath);
         if (file.exists()) {
             try {
-                FileOutputStream os = new FileOutputStream(signedFilePath);
+                FileOutputStream os = new FileOutputStream(filePath);
                 PdfReader reader = new PdfReader(filePath);
-                if (reader.isEncrypted()) {
-                    signed = false;
+                if (!reader.isEncrypted()) {
+                    ExternalSignatureContainer container = new ClientSignatureContainer(signature);
+                    MakeSignature.signDeferred(reader, signatureFieldName, os, container);
+                    reader.close();
+                    os.close();
+                    signed = true;
                 }
-                ExternalSignatureContainer container = new ClientSignatureContainer(signature);
-                MakeSignature.signDeferred(reader, signatureFieldName, os, container);
-                reader.close();
-                os.close();
-                signed = true;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-        return signed;
+        return signed ? verifySignature(filePath) : false;
     }
 
     public void setSignatureGraphic(String imagePath) {
