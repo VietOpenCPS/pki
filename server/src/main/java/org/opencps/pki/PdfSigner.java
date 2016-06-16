@@ -103,10 +103,10 @@ public class PdfSigner extends BaseSigner {
      * @param filePath The path of pdf document
      */
     public PdfSigner(String filePath) {
+    	super();
         originFilePath = filePath;
         tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
-        hashAlgorithm = HashAlgorithm.SHA256;
     }
 
     /**
@@ -116,10 +116,10 @@ public class PdfSigner extends BaseSigner {
      * @param cert The certificate of user
      */
     public PdfSigner(String filePath, X509Certificate cert) {
+    	super();
         originFilePath = filePath;
         tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
-        hashAlgorithm = HashAlgorithm.SHA256;
         this.cert= cert;
     }
 
