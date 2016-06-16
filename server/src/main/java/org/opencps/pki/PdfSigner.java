@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.CRL;
@@ -30,13 +31,18 @@ import java.security.cert.CRLException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.AcroFields;
@@ -46,6 +52,7 @@ import com.itextpdf.text.pdf.PdfSignatureAppearance;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.text.pdf.security.BouncyCastleDigest;
+import com.itextpdf.text.pdf.security.CRLVerifier;
 import com.itextpdf.text.pdf.security.CertificateUtil;
 import com.itextpdf.text.pdf.security.CertificateVerification;
 import com.itextpdf.text.pdf.security.DigestAlgorithms;
@@ -54,10 +61,12 @@ import com.itextpdf.text.pdf.security.ExternalDigest;
 import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
 import com.itextpdf.text.pdf.security.LtvTimestamp;
 import com.itextpdf.text.pdf.security.MakeSignature;
+import com.itextpdf.text.pdf.security.OCSPVerifier;
 import com.itextpdf.text.pdf.security.PdfPKCS7;
 import com.itextpdf.text.pdf.security.TSAClient;
 import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
 import com.itextpdf.text.pdf.security.VerificationException;
+import com.itextpdf.text.pdf.security.VerificationOK;
 
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
@@ -184,7 +193,6 @@ public class PdfSigner implements ServerSigner {
     @Override
     public Boolean verifySignature(String filePath, KeyStore ks) {
         Boolean verified = false;
-        int errorNumber = 0;
         try {
             PdfReader reader = new PdfReader(filePath);
             AcroFields fields = reader.getAcroFields();
@@ -194,20 +202,38 @@ public class PdfSigner implements ServerSigner {
                 Certificate[] certs = pkcs7.getSignCertificateChain();
                 Calendar cal = pkcs7.getSignDate();
                 List<VerificationException> errors = CertificateVerification.verifyCertificates(certs, ks, cal);
-                if (errors.size() > 0) {
-                    errorNumber += errors.size();
-                }
-                else {
-                    
+                if (errors.size() == 0) {
+                    X509Certificate signCert = (X509Certificate)certs[0];
+                    X509Certificate issuerCert = (certs.length > 1 ? (X509Certificate)certs[1] : null);
+                    verified = checkSignatureRevocation(pkcs7, signCert, issuerCert, cal.getTime()) && checkSignatureRevocation(pkcs7, signCert, issuerCert, new Date());
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (errorNumber == 0) {
-            
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return verified;
+    }
+
+    /**
+     * Check signature revocation
+     */
+    protected Boolean checkSignatureRevocation(PdfPKCS7 pkcs7, X509Certificate signCert, X509Certificate issuerCert, Date date) throws GeneralSecurityException, IOException {
+        List<BasicOCSPResp> ocsps = new ArrayList<BasicOCSPResp>();
+        if (pkcs7.getOcsp() != null)
+            ocsps.add(pkcs7.getOcsp());
+        OCSPVerifier ocspVerifier = new OCSPVerifier(null, ocsps);
+        List<VerificationOK> verification =
+            ocspVerifier.verify(signCert, issuerCert, date);
+        if (verification.size() == 0) {
+            List<X509CRL> crls = new ArrayList<X509CRL>();
+            if (pkcs7.getCRLs() != null) {
+                for (CRL crl : pkcs7.getCRLs())
+                    crls.add((X509CRL)crl);
+            }
+            CRLVerifier crlVerifier = new CRLVerifier(null, crls);
+            verification.addAll(crlVerifier.verify(signCert, issuerCert, date));
+        }
+        return verification.size() > 0;
     }
 
     /**
