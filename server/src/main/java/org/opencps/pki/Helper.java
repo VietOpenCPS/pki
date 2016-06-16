@@ -24,10 +24,10 @@ package org.opencps.pki;
  */
 public class Helper {
 
-	/**
-	 * Strip file extension
-	 * @param filePath
-	 */
+    /**
+     * Strip file extension
+     * @param filePath
+     */
     public static String stripFileExtension(String filePath) {
         if (filePath == null) {
             return null;

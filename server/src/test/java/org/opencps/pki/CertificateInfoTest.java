@@ -19,11 +19,10 @@ package org.opencps.pki;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.URL;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -32,7 +31,7 @@ import junit.framework.TestSuite;
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class CertificateInfoTest extends TestCase{
+public class CertificateInfoTest extends TestCase {
 
     private static final String certPath = "./src/test/java/resources/cert.pem";
     private CertificateInfo certInfo;
@@ -73,11 +72,20 @@ public class CertificateInfoTest extends TestCase{
     
     public void testGetEmail() {
         assertEquals("demo@opencps.org.vn", certInfo.getEmail());
-        System.out.println(certInfo.getSerialNumber());
     }
     
     public void testGetSerialNumber() {
         assertEquals("17284444107497658335", certInfo.getSerialNumber());
+    }
+    
+    public void testGetIssuer() {
+        assertEquals("EMAILADDRESS=demo@opencps.org.vn, CN=OpenCPS PKI, OU=OpenCPS Technical Committee, O=OpenCPS Community, L=Hanoi, ST=Hanoi, C=VN", certInfo.getIssuer());
+    }
+    
+    public void testGetValid() {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        assertEquals("2016-06-15", df.format(certInfo.getValidFrom()));
+        assertEquals("2019-03-12", df.format(certInfo.getValidTo()));
     }
     
     public void testGetCertificate() {

@@ -18,6 +18,7 @@ package org.opencps.pki;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.Date;
 
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -82,6 +83,27 @@ public class CertificateInfo {
      */
     public String getSerialNumber() {
         return cert.getSerialNumber().toString();
+    }
+    
+    /**
+     * Get Issuer distinguished name
+     */
+    public String getIssuer() {
+        return cert.getIssuerDN().toString();
+    }
+    
+    /**
+     * Get valid from date
+     */
+    public Date getValidFrom() {
+        return cert.getNotBefore();
+    }
+
+    /**
+     * Get valid to date
+     */
+    public Date getValidTo() {
+        return cert.getNotAfter();
     }
 
     /**
