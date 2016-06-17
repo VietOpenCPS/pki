@@ -17,9 +17,12 @@
 package org.opencps.pki;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CRL;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -44,10 +47,20 @@ public abstract class BaseSigner implements ServerSigner {
     protected HashAlgorithm hashAlgorithm;
     
     /**
+     * Java key store
+     */
+    protected KeyStore ks;
+
+    /**
      * Constructor
      */
     public BaseSigner() {
         hashAlgorithm = HashAlgorithm.SHA256;
+        try {
+            ks = KeyStore.getInstance(KeyStore.getDefaultType());
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -81,12 +94,7 @@ public abstract class BaseSigner implements ServerSigner {
      */
     @Override
     public Boolean validateCertificate(X509Certificate cert) {
-        try {
-            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-            return validateCertificate(cert, ks);
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
+        return validateCertificate(cert, getKeyStore());
     }
 
     /**
@@ -128,6 +136,31 @@ public abstract class BaseSigner implements ServerSigner {
     public BaseSigner setHashAlgorithm(HashAlgorithm hashAlgorithm) {
         this.hashAlgorithm = hashAlgorithm;
         return this;
+    }
+
+    /**
+     * Get java key store
+     */
+    public KeyStore getKeyStore() {
+        return ks;
+    }
+
+    /**
+     * Set java key store
+     */
+    public BaseSigner setKeyStore(KeyStore ks) {
+        this.ks = ks;
+        return this;
+    }
+    
+    /**
+     * Load key store from file
+     */
+    public KeyStore loadKeyStore(String filePath, String password) throws NoSuchAlgorithmException, CertificateException, IOException {
+        InputStream is = new FileInputStream(filePath);
+        ks.load(is, password.toCharArray());
+        is.close();
+        return ks;
     }
 
 }

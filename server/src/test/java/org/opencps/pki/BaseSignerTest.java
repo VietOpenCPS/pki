@@ -22,7 +22,9 @@ import static org.mockito.Mockito.mock;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -32,6 +34,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.cert.Certificate;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -44,6 +47,9 @@ public class BaseSignerTest extends TestCase {
     private static final String certPath = "./src/test/java/resources/cert.pem";
     private static final String ghCertPath = "./src/test/java/resources/github.pem";
     private static final String rootCaPath = "./src/test/java/resources/rootca.pem";
+
+    private static final String keyStorePath = "./src/test/java/resources/opencsp.jks";
+    private static final String keyStorePass = "opencps";
 
     X509Certificate cert;
     CertificateFactory cf;
@@ -96,6 +102,25 @@ public class BaseSignerTest extends TestCase {
     public void testHashAlgorithm() {
         signer.setHashAlgorithm(HashAlgorithm.SHA512);
         assertEquals(HashAlgorithm.SHA512, signer.getHashAlgorithm());
+    }
+
+    public void testKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+        signer.setKeyStore(ks);
+        assertEquals(ks, signer.getKeyStore());
+
+        ks.load(null, null);
+        Certificate cert = cf.generateCertificate(new FileInputStream(rootCaPath));
+        ks.setCertificateEntry("digicert", cert);
+
+        File file = new File(keyStorePath);
+        if (!file.exists()) {
+            OutputStream os = new FileOutputStream(keyStorePath);
+            ks.store(os, keyStorePass.toCharArray());
+            os.close();
+        }
+        signer.loadKeyStore(keyStorePath, keyStorePass);
+        assertEquals(cert, signer.getKeyStore().getCertificate("digicert"));;
     }
 
 }
