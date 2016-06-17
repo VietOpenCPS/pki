@@ -138,7 +138,6 @@ public class PdfSignerTest extends TestCase {
         PrivateKeySignature signature = new PrivateKeySignature(privateKey, "SHA256", "BC");
         
         byte[] extSignature = signature.sign(hash);
-        signer.sign(extSignature);
-        assertFalse(signer.verifySignature(signer.getSignedFilePath()));
+        assertFalse(signer.sign(extSignature));
     }
 }

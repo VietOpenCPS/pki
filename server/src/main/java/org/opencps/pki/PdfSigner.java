@@ -139,13 +139,15 @@ public class PdfSigner extends BaseSigner {
             ArrayList<String> names = fields.getSignatureNames();
             for (String name : names) {
                 PdfPKCS7 pkcs7 = fields.verifySignature(name);
-                Certificate[] certs = pkcs7.getSignCertificateChain();
-                Calendar cal = pkcs7.getSignDate();
-                List<VerificationException> errors = CertificateVerification.verifyCertificates(certs, ks, cal);
-                if (errors.size() == 0) {
-                    X509Certificate signCert = (X509Certificate)certs[0];
-                    X509Certificate issuerCert = (certs.length > 1 ? (X509Certificate)certs[1] : null);
-                    verified = checkSignatureRevocation(pkcs7, signCert, issuerCert, cal.getTime()) && checkSignatureRevocation(pkcs7, signCert, issuerCert, new Date());
+                if (pkcs7.verify()) {
+                    Certificate[] certs = pkcs7.getSignCertificateChain();
+                    Calendar cal = pkcs7.getSignDate();
+                    List<VerificationException> errors = CertificateVerification.verifyCertificates(certs, ks, cal);
+                    if (errors.size() == 0) {
+                        X509Certificate signCert = (X509Certificate)certs[0];
+                        X509Certificate issuerCert = (certs.length > 1 ? (X509Certificate)certs[1] : null);
+                        verified = checkSignatureRevocation(pkcs7, signCert, issuerCert, cal.getTime()) && checkSignatureRevocation(pkcs7, signCert, issuerCert, new Date());
+                    }
                 }
             }
             reader.close();
@@ -272,8 +274,7 @@ public class PdfSigner extends BaseSigner {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return signed;
-//        return signed ? verifySignature(filePath) : false;
+        return signed ? verifySignature(signedFilePath) : false;
     }
 
     /**
