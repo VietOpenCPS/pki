@@ -129,12 +129,7 @@ public class PdfSigner extends BaseSigner {
      */
     @Override
     public Boolean verifySignature(String filePath) {
-        try {
-            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-            return verifySignature(filePath, ks);
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
+        return verifySignature(filePath, getKeyStore());
     }
 
     /**
@@ -286,14 +281,14 @@ public class PdfSigner extends BaseSigner {
     public void setSignatureGraphic(String imagePath) {
         signatureImage = new SignatureImage(imagePath);
     }
-    
+
     /**
      * Get origin file path of pdf document
      */
     public String getOriginFilePath() {
         return originFilePath;
     }
-    
+
     /**
      * Get temporary file path of pdf document
      */
