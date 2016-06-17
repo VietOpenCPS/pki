@@ -18,8 +18,13 @@ package org.opencps.pki;
 
 import static org.mockito.Mockito.mock;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Random;
 
 import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
@@ -32,6 +37,8 @@ import junit.framework.TestSuite;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class ClientSignatureContainerTest extends TestCase {
+    private static final String certPath = "./src/test/java/resources/cert.pem";
+    private static final String pdfPath = "./src/test/java/resources/opencps.pdf";
 
     public ClientSignatureContainerTest(String testName) {
         super(testName);
@@ -45,10 +52,13 @@ public class ClientSignatureContainerTest extends TestCase {
         return new TestSuite(ClientSignatureContainerTest.class);
     }
     
-    public void testSignatureContainer() throws GeneralSecurityException {
+    public void testSignatureContainer() throws GeneralSecurityException, FileNotFoundException {
         byte[] b = new byte[20];
         new Random().nextBytes(b);
-        ExternalSignatureContainer container = new ClientSignatureContainer(b);
-        assertEquals(b, container.sign(mock(InputStream.class)));
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(certPath)));
+        PdfSigner signer = new PdfSigner(pdfPath, cert);
+        ExternalSignatureContainer container = new ClientSignatureContainer(signer, b);
+        assertTrue(container.sign(mock(InputStream.class)).length > 0);
     }
 }

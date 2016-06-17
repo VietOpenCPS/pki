@@ -20,15 +20,33 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 
+import org.bouncycastle.asn1.ASN1Encoding;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
+import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.PKCSException;
+
+import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.security.PrivateKeySignature;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -39,6 +57,7 @@ import junit.framework.TestSuite;
  */
 public class PdfSignerTest extends TestCase {
     private static final String certPath = "./src/test/java/resources/cert.pem";
+    private static final String keyPath = "./src/test/java/resources/key.pem";
     private static final String pdfPath = "./src/test/java/resources/opencps.pdf";
     private static final String signImagePath = "./src/test/java/resources/signature.png";
 
@@ -96,5 +115,30 @@ public class PdfSignerTest extends TestCase {
         ArrayList<String> names = fields.getSignatureNames();
         assertTrue(names.size() > 0);
         assertEquals(names.get(0), signer.getSignatureFieldName());
+    }
+    
+    public void testSign() throws IOException, OperatorCreationException, PKCSException, GeneralSecurityException, DocumentException {
+        signer.setSignatureGraphic(signImagePath);
+        byte[] hash = signer.computeHash();
+        assertTrue(hash.length > 0);
+        
+        Security.addProvider(new BouncyCastleProvider());
+        File file = new File(keyPath);
+        PEMParser pemParser = new PEMParser(new FileReader(file));
+        PKCS8EncryptedPrivateKeyInfo keyInfo = (PKCS8EncryptedPrivateKeyInfo) pemParser.readObject();
+        pemParser.close();
+
+        JceOpenSSLPKCS8DecryptorProviderBuilder jce = new JceOpenSSLPKCS8DecryptorProviderBuilder();
+        InputDecryptorProvider decProv = jce.build("opencps".toCharArray());
+        PrivateKeyInfo info = keyInfo.decryptPrivateKeyInfo(decProv);
+        
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(info.getEncoded(ASN1Encoding.DER)));
+        
+        PrivateKeySignature signature = new PrivateKeySignature(privateKey, "SHA256", "BC");
+        
+        byte[] extSignature = signature.sign(hash);
+        signer.sign(extSignature);
+        assertFalse(signer.verifySignature(signer.getSignedFilePath()));
     }
 }

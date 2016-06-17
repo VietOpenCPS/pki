@@ -54,6 +54,7 @@ import com.itextpdf.text.pdf.security.ExternalDigest;
 import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
 import com.itextpdf.text.pdf.security.LtvTimestamp;
 import com.itextpdf.text.pdf.security.MakeSignature;
+import com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard;
 import com.itextpdf.text.pdf.security.OCSPVerifier;
 import com.itextpdf.text.pdf.security.PdfPKCS7;
 import com.itextpdf.text.pdf.security.TSAClient;
@@ -95,18 +96,11 @@ public class PdfSigner extends BaseSigner {
      * Signed Pdf document file path
      */
     private String signedFilePath;
-
+    
     /**
-     * Constructor
-     *
-     * @param filePath The path of pdf document
+     * Sign date
      */
-    public PdfSigner(String filePath) {
-        super();
-        originFilePath = filePath;
-        tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
-        signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
-    }
+    private Calendar signDate;
 
     /**
      * Constructor
@@ -119,6 +113,7 @@ public class PdfSigner extends BaseSigner {
         originFilePath = filePath;
         tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
+        signDate = Calendar.getInstance();
         this.cert= cert;
     }
 
@@ -153,6 +148,7 @@ public class PdfSigner extends BaseSigner {
                     verified = checkSignatureRevocation(pkcs7, signCert, issuerCert, cal.getTime()) && checkSignatureRevocation(pkcs7, signCert, issuerCert, new Date());
                 }
             }
+            reader.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -196,19 +192,17 @@ public class PdfSigner extends BaseSigner {
             PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
             signatureFieldName = appearance.getNewSigName();
             TSAClient tsaClient = null;
-            if (cert != null) {
-                appearance.setCertificate(cert);
-                String tsaUrl = CertificateUtil.getTSAURL(cert);
-                if (tsaUrl != null) {
-                    tsaClient = new TSAClientBouncyCastle(tsaUrl);
-                }
+            appearance.setCertificate(cert);
+            String tsaUrl = CertificateUtil.getTSAURL(cert);
+            if (tsaUrl != null) {
+                tsaClient = new TSAClientBouncyCastle(tsaUrl);
             }
             if (tsaClient != null) {
                 LtvTimestamp.timestamp(appearance, tsaClient, signatureFieldName);
                 contentEstimated += 4096;
             }
 
-            appearance.setSignDate(Calendar.getInstance());
+            appearance.setSignDate(signDate);
             appearance.setLocation("OpenCPS PKI");
             appearance.setContact("OpenCPS PKI");
             if (signatureImage != null) {
@@ -235,7 +229,9 @@ public class PdfSigner extends BaseSigner {
             MakeSignature.signExternalContainer(appearance, external, contentEstimated);
             
             ExternalDigest digest = new BouncyCastleDigest();
-            hash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest(hashAlgorithm.toString()));
+            byte[] digestHash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest(hashAlgorithm.toString()));
+            PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, hashAlgorithm.toString(), null, digest, false);
+            hash = sgn.getAuthenticatedAttributeBytes(digestHash, null, null, CryptoStandard.CMS);
             reader.close();
             os.close();
         } catch (Exception e) {
@@ -263,23 +259,43 @@ public class PdfSigner extends BaseSigner {
             throw new RuntimeException("You must set signature field name before sign the document");
         }
         Boolean signed = false;
-        File file = new File(filePath);
-        if (file.exists()) {
-            try {
-                FileOutputStream os = new FileOutputStream(filePath);
-                PdfReader reader = new PdfReader(filePath);
-                if (!reader.isEncrypted()) {
-                    ExternalSignatureContainer container = new ClientSignatureContainer(signature);
-                    MakeSignature.signDeferred(reader, signatureFieldName, os, container);
-                    reader.close();
-                    os.close();
-                    signed = true;
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        try {
+            FileOutputStream os = new FileOutputStream(signedFilePath);
+            PdfReader reader = new PdfReader(filePath);
+            if (!reader.isEncrypted()) {
+                ExternalSignatureContainer container = new ClientSignatureContainer(this, signature);
+                MakeSignature.signDeferred(reader, signatureFieldName, os, container);
+                reader.close();
+                os.close();
+                signed = true;
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return signed ? verifySignature(filePath) : false;
+        return signed;
+//        return signed ? verifySignature(filePath) : false;
+    }
+
+    /**
+     * Get certificate 
+     */
+    public X509Certificate getCertificate() {
+    	return cert;
+    }
+
+    /**
+     * Get sign date
+     */
+    public Calendar getSignDate() {
+    	return signDate;
+    }
+
+    /**
+     * Set sign date
+     */
+    public PdfSigner setSignDate(Calendar signDate) {
+    	this.signDate = signDate;
+    	return this;
     }
 
     /**

@@ -16,11 +16,21 @@
 */
 package org.opencps.pki;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 
 import com.itextpdf.text.pdf.PdfDictionary;
+import com.itextpdf.text.pdf.security.BouncyCastleDigest;
+import com.itextpdf.text.pdf.security.CertificateUtil;
+import com.itextpdf.text.pdf.security.DigestAlgorithms;
 import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
+import com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard;
+import com.itextpdf.text.pdf.security.PdfPKCS7;
+import com.itextpdf.text.pdf.security.TSAClient;
+import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
 
 /**
  * Produces a signed data from client. Useful for deferred signing
@@ -30,11 +40,14 @@ import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
 public class ClientSignatureContainer implements ExternalSignatureContainer {
 
     private byte[] signedData;
+    
+    private PdfSigner signer;
 
     /**
      * Constructor
      */
-    public ClientSignatureContainer(byte[] data) {
+    public ClientSignatureContainer(PdfSigner signer, byte[] data) {
+    	this.signer = signer;
         signedData = data;
     }
 
@@ -44,7 +57,25 @@ public class ClientSignatureContainer implements ExternalSignatureContainer {
 
     @Override
     public byte[] sign(InputStream is) throws GeneralSecurityException {
-        return signedData;
+    	X509Certificate cert = signer.getCertificate();
+		BouncyCastleDigest digest = new BouncyCastleDigest();
+		PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, signer.getHashAlgorithm().toString(), null, digest, false);
+		sgn.setExternalDigest(signedData, null, cert.getPublicKey().getAlgorithm());
+
+		byte[] hash = null;
+		try {
+			hash = DigestAlgorithms.digest(is, digest.getMessageDigest(signer.getHashAlgorithm().toString()));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		TSAClient tsaClient = null;
+        String tsaUrl = CertificateUtil.getTSAURL(cert);
+        if (tsaUrl != null) {
+            tsaClient = new TSAClientBouncyCastle(tsaUrl);
+        }
+
+        return sgn.getEncodedPKCS7(hash, tsaClient, null, null, CryptoStandard.CMS);
     }
 
 }
