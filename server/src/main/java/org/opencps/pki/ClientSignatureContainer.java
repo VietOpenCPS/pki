@@ -47,7 +47,7 @@ public class ClientSignatureContainer implements ExternalSignatureContainer {
      * Constructor
      */
     public ClientSignatureContainer(PdfSigner signer, byte[] data) {
-    	this.signer = signer;
+        this.signer = signer;
         signedData = data;
     }
 
@@ -57,19 +57,19 @@ public class ClientSignatureContainer implements ExternalSignatureContainer {
 
     @Override
     public byte[] sign(InputStream is) throws GeneralSecurityException {
-    	X509Certificate cert = signer.getCertificate();
-		BouncyCastleDigest digest = new BouncyCastleDigest();
-		PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, signer.getHashAlgorithm().toString(), null, digest, false);
-		sgn.setExternalDigest(signedData, null, cert.getPublicKey().getAlgorithm());
+        X509Certificate cert = signer.getCertificate();
+        BouncyCastleDigest digest = new BouncyCastleDigest();
+        PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, signer.getHashAlgorithm().toString(), null, digest, false);
+        sgn.setExternalDigest(signedData, null, cert.getPublicKey().getAlgorithm());
 
-		byte[] hash = null;
-		try {
-			hash = DigestAlgorithms.digest(is, digest.getMessageDigest(signer.getHashAlgorithm().toString()));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+        byte[] hash = null;
+        try {
+            hash = DigestAlgorithms.digest(is, digest.getMessageDigest(signer.getHashAlgorithm().toString()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-		TSAClient tsaClient = null;
+        TSAClient tsaClient = null;
         String tsaUrl = CertificateUtil.getTSAURL(cert);
         if (tsaUrl != null) {
             tsaClient = new TSAClientBouncyCastle(tsaUrl);
