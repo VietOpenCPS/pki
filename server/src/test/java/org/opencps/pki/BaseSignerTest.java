@@ -43,7 +43,6 @@ import junit.framework.TestSuite;
 public class BaseSignerTest extends TestCase {
     private static final String certPath = "./src/test/java/resources/cert.pem";
     private static final String ghCertPath = "./src/test/java/resources/github.pem";
-    private static final String serverCaPath = "./src/test/java/resources/serverca.pem";
     private static final String rootCaPath = "./src/test/java/resources/rootca.pem";
 
     X509Certificate cert;
@@ -89,7 +88,6 @@ public class BaseSignerTest extends TestCase {
         ks.load(null, null);
 
         ks.setCertificateEntry("digicert", cf.generateCertificate(new FileInputStream(rootCaPath)));
-        ks.setCertificateEntry("digicert-server", cf.generateCertificate(new FileInputStream(serverCaPath)));
 
         X509Certificate ghCert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(ghCertPath)));
         assertTrue(signer.validateCertificate(ghCert, ks));
