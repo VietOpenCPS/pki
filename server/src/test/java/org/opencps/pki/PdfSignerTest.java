@@ -16,19 +16,19 @@
 */
 package org.opencps.pki;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+
+import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.AcroFields;
+import com.itextpdf.text.pdf.PdfReader;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -40,6 +40,7 @@ import junit.framework.TestSuite;
 public class PdfSignerTest extends TestCase {
     private static final String certPath = "./src/test/java/resources/cert.pem";
     private static final String pdfPath = "./src/test/java/resources/opencps.pdf";
+    private static final String signImagePath = "./src/test/java/resources/signature.png";
 
     X509Certificate cert;
     CertificateFactory cf;
@@ -70,5 +71,30 @@ public class PdfSignerTest extends TestCase {
         assertEquals(pdfPath, signer.getOriginFilePath());
         assertEquals("./src/test/java/resources/opencps.temp.pdf", signer.getTempFilePath());
         assertEquals("./src/test/java/resources/opencps.signed.pdf", signer.getSignedFilePath());
+    }
+    
+    public void testSignatureFieldName() {
+        assertEquals(signer, signer.setSignatureFieldName("OpenCPS-Signature"));
+        assertEquals("OpenCPS-Signature", signer.getSignatureFieldName());
+    }
+    
+    public void testSignatureGraphic() {
+        assertEquals(signer, signer.setSignatureGraphic(signImagePath));
+        assertTrue(signer.getSignatureGraphic().getImage() instanceof Image);
+        BufferedImage bufferedImage = signer.getSignatureGraphic().getBufferedImage();
+        assertEquals(300, bufferedImage.getWidth());
+        assertEquals(128, bufferedImage.getHeight());
+    }
+    
+    public void testComputeHash() throws IOException {
+        signer.setSignatureGraphic(signImagePath);
+        byte[] hash = signer.computeHash();
+        assertTrue(hash.length > 0);
+
+        PdfReader reader = new PdfReader(signer.getTempFilePath());
+        AcroFields fields = reader.getAcroFields();
+        ArrayList<String> names = fields.getSignatureNames();
+        assertTrue(names.size() > 0);
+        assertEquals(names.get(0), signer.getSignatureFieldName());
     }
 }

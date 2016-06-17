@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.cert.CRL;
 import java.security.cert.Certificate;
 import java.security.cert.X509CRL;
@@ -103,7 +102,7 @@ public class PdfSigner extends BaseSigner {
      * @param filePath The path of pdf document
      */
     public PdfSigner(String filePath) {
-    	super();
+        super();
         originFilePath = filePath;
         tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
@@ -116,7 +115,7 @@ public class PdfSigner extends BaseSigner {
      * @param cert The certificate of user
      */
     public PdfSigner(String filePath, X509Certificate cert) {
-    	super();
+        super();
         originFilePath = filePath;
         tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
@@ -219,14 +218,19 @@ public class PdfSigner extends BaseSigner {
                 int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
                 int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
                 float llx = 36.0f;
-                float lly = 748.0f;
+                float lly = 48.0f;
                 float urx = llx + signatureImageWidth;
                 float ury = lly + signatureImageHeight;
                 appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
             }
             else {
-                appearance.setVisibleSignature(new Rectangle(36, 748, 144, 780), 1, signatureFieldName);
+                if (cert != null) {
+                    CertificateInfo certInfo = new CertificateInfo(cert);
+                    appearance.setLayer2Text(certInfo.getCommonName());
+                }
+                appearance.setVisibleSignature(new Rectangle(36, 48, 144, 80), 1, signatureFieldName);
             }
+
             ExternalSignatureContainer external = new ExternalBlankSignatureContainer(PdfName.ADOBE_PPKLITE, PdfName.ADBE_PKCS7_DETACHED);
             MakeSignature.signExternalContainer(appearance, external, contentEstimated);
             
@@ -255,6 +259,9 @@ public class PdfSigner extends BaseSigner {
      */
     @Override
     public Boolean sign(byte[] signature, String filePath) {
+        if (signatureFieldName == null || signatureFieldName.length() == 0) {
+            throw new RuntimeException("You must set signature field name before sign the document");
+        }
         Boolean signed = false;
         File file = new File(filePath);
         if (file.exists()) {
@@ -278,8 +285,16 @@ public class PdfSigner extends BaseSigner {
     /**
      * Set signature graphic
      */
-    public void setSignatureGraphic(String imagePath) {
+    public PdfSigner setSignatureGraphic(String imagePath) {
         signatureImage = new SignatureImage(imagePath);
+        return this;
+    }
+    
+    /**
+     * Get signature graphic
+     */
+    public SignatureImage getSignatureGraphic() {
+        return signatureImage;
     }
 
     /**

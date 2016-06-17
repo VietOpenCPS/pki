@@ -56,7 +56,7 @@ public class BaseSignerTest extends TestCase {
     BaseSigner signer;
 
     /**
-     * 
+     * Create the test case
      */
     public BaseSignerTest(String testName) {
         super(testName);
