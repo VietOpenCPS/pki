@@ -1,0 +1,42 @@
+{
+  "name": "opencps-pki",
+  "main": [
+    "opencps-pki.js"
+  ],
+  "version": "0.0.1",
+  "authors": [
+    "Nguyen Van Nguyen <nguyennv@iwayvietnam.com>"
+  ],
+  "description": "Polyfill for window.hwcrypto for signing with smart card extensions",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "smartcard"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/VietOpenCPS/pki.git",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/VietOpenCPS/pki.git"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "mocha": "~2.1.0",
+    "chai": "~2.1.0",
+    "jquery": "~1.11.2",
+    "should": "~5.2.0",
+    "chai-as-promised": "~4.3.0",
+    "bind-polyfill": "~1.0.0"
+  },
+  "dependencies": {
+    "jquery": "~1.11.2",
+    "hwcrypto": "~0.0.10"
+  }
+}
