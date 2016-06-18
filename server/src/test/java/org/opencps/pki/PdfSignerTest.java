@@ -46,6 +46,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.security.PdfPKCS7;
 import com.itextpdf.text.pdf.security.PrivateKeySignature;
 
 import junit.framework.Test;
@@ -115,6 +116,15 @@ public class PdfSignerTest extends TestCase {
         ArrayList<String> names = fields.getSignatureNames();
         assertTrue(names.size() > 0);
         assertEquals(names.get(0), signer.getSignatureFieldName());
+        for (String name : names) {
+            try {
+                fields.verifySignature(name);
+                fail("Missing exception");
+            }
+            catch (Exception ex) {
+                assertEquals("can't decode PKCS7SignedData object", ex.getMessage());
+            }
+        }
     }
     
     public void testSign() throws IOException, OperatorCreationException, PKCSException, GeneralSecurityException, DocumentException {
@@ -139,5 +149,15 @@ public class PdfSignerTest extends TestCase {
         
         byte[] extSignature = signature.sign(hash);
         assertFalse(signer.sign(extSignature));
+
+        PdfReader reader = new PdfReader(signer.getSignedFilePath());
+        AcroFields fields = reader.getAcroFields();
+        ArrayList<String> names = fields.getSignatureNames();
+        assertTrue(names.size() > 0);
+        assertEquals(names.get(0), signer.getSignatureFieldName());
+        for (String name : names) {
+            PdfPKCS7 pkcs7 = fields.verifySignature(name);
+            assertTrue(pkcs7.verify());
+        }
     }
 }
