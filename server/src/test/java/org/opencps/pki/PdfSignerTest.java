@@ -145,7 +145,7 @@ public class PdfSignerTest extends TestCase {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(info.getEncoded(ASN1Encoding.DER)));
         
-        PrivateKeySignature signature = new PrivateKeySignature(privateKey, "SHA256", "BC");
+        PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
         
         byte[] extSignature = signature.sign(hash);
         assertFalse(signer.sign(extSignature));
