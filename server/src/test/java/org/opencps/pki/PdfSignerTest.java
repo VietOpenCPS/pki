@@ -46,7 +46,6 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.security.PdfPKCS7;
 import com.itextpdf.text.pdf.security.PrivateKeySignature;
 
 import junit.framework.Test;
@@ -86,18 +85,18 @@ public class PdfSignerTest extends TestCase {
         cert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(certPath)));
         signer = new PdfSigner(pdfPath, cert);
     }
-    
+
     public void testFilePath() {
         assertEquals(pdfPath, signer.getOriginFilePath());
         assertEquals("./src/test/java/resources/opencps.temp.pdf", signer.getTempFilePath());
         assertEquals("./src/test/java/resources/opencps.signed.pdf", signer.getSignedFilePath());
     }
-    
+
     public void testSignatureFieldName() {
         assertEquals(signer, signer.setSignatureFieldName("OpenCPS-Signature"));
         assertEquals("OpenCPS-Signature", signer.getSignatureFieldName());
     }
-    
+
     public void testSignatureGraphic() {
         assertEquals(signer, signer.setSignatureGraphic(signImagePath));
         assertTrue(signer.getSignatureGraphic().getImage() instanceof Image);
@@ -105,7 +104,7 @@ public class PdfSignerTest extends TestCase {
         assertEquals(300, bufferedImage.getWidth());
         assertEquals(128, bufferedImage.getHeight());
     }
-    
+
     public void testComputeHash() throws IOException {
         signer.setSignatureGraphic(signImagePath);
         byte[] hash = signer.computeHash();
@@ -126,12 +125,12 @@ public class PdfSignerTest extends TestCase {
             }
         }
     }
-    
+
     public void testSign() throws IOException, OperatorCreationException, PKCSException, GeneralSecurityException, DocumentException {
         signer.setSignatureGraphic(signImagePath);
         byte[] hash = signer.computeHash();
         assertTrue(hash.length > 0);
-        
+
         Security.addProvider(new BouncyCastleProvider());
         File file = new File(keyPath);
         PEMParser pemParser = new PEMParser(new FileReader(file));
@@ -141,23 +140,13 @@ public class PdfSignerTest extends TestCase {
         JceOpenSSLPKCS8DecryptorProviderBuilder jce = new JceOpenSSLPKCS8DecryptorProviderBuilder();
         InputDecryptorProvider decProv = jce.build("opencps".toCharArray());
         PrivateKeyInfo info = keyInfo.decryptPrivateKeyInfo(decProv);
-        
+
         KeyFactory kf = KeyFactory.getInstance("RSA");
         PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(info.getEncoded(ASN1Encoding.DER)));
-        
-        PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
-        
-        byte[] extSignature = signature.sign(hash);
-        assertFalse(signer.sign(extSignature));
 
-        PdfReader reader = new PdfReader(signer.getSignedFilePath());
-        AcroFields fields = reader.getAcroFields();
-        ArrayList<String> names = fields.getSignatureNames();
-        assertTrue(names.size() > 0);
-        assertEquals(names.get(0), signer.getSignatureFieldName());
-        for (String name : names) {
-            PdfPKCS7 pkcs7 = fields.verifySignature(name);
-            assertTrue(pkcs7.verify());
-        }
+        PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
+
+        byte[] extSignature = signature.sign(hash);
+        assertTrue(signer.sign(extSignature));
     }
 }

@@ -16,113 +16,27 @@
 */
 package org.opencps.pki;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CRL;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Calendar;
-import java.util.List;
-
-import com.itextpdf.text.pdf.security.CertificateUtil;
-import com.itextpdf.text.pdf.security.CertificateVerification;
-import com.itextpdf.text.pdf.security.VerificationException;
-
 /**
  * Base abstract class for singer
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public abstract class BaseSigner implements ServerSigner {
+public abstract class BaseSigner implements Signer {
     
     /**
      * Hash algorithm
      */
     protected HashAlgorithm hashAlgorithm;
-    
-    /**
-     * Java key store
-     */
-    protected KeyStore ks;
 
     /**
      * Constructor
      */
     public BaseSigner() {
         hashAlgorithm = HashAlgorithm.SHA256;
-        try {
-            ks = KeyStore.getInstance(KeyStore.getDefaultType());
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#readCertificate()
-     */
-    @Override
-    public CertificateInfo readCertificate(byte[] bytes) {
-        try {
-            InputStream is = new ByteArrayInputStream(bytes);
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) cf.generateCertificate(is);
-            return new CertificateInfo(cert);
-        } catch (CertificateException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#readCertificate()
-     */
-    @Override
-    public CertificateInfo readCertificate(String cert) {
-        return readCertificate(cert.getBytes());
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#validateCertificate()
-     */
-    @Override
-    public Boolean validateCertificate(X509Certificate cert) {
-        return validateCertificate(cert, getKeyStore());
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#validateCertificate()
-     */
-    @Override
-    public Boolean validateCertificate(X509Certificate cert, KeyStore ks) {
-        try {
-            List<VerificationException> errors = CertificateVerification.verifyCertificates(new Certificate[] { cert }, ks, Calendar.getInstance());
-            if (errors.size() == 0) {
-                CRL crl = CertificateUtil.getCRL(cert);
-                if (crl != null) {
-                    return !crl.isRevoked(cert);
-                }
-                return true;
-            }
-            else {
-                return false;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#getHashAlgorithm()
+     * @see org.opencps.pki.Signer#getHashAlgorithm()
      */
     @Override
     public HashAlgorithm getHashAlgorithm() {
@@ -136,31 +50,6 @@ public abstract class BaseSigner implements ServerSigner {
     public BaseSigner setHashAlgorithm(HashAlgorithm hashAlgorithm) {
         this.hashAlgorithm = hashAlgorithm;
         return this;
-    }
-
-    /**
-     * Get java key store
-     */
-    public KeyStore getKeyStore() {
-        return ks;
-    }
-
-    /**
-     * Set java key store
-     */
-    public BaseSigner setKeyStore(KeyStore ks) {
-        this.ks = ks;
-        return this;
-    }
-    
-    /**
-     * Load key store from file
-     */
-    public KeyStore loadKeyStore(String filePath, String password) throws NoSuchAlgorithmException, CertificateException, IOException {
-        InputStream is = new FileInputStream(filePath);
-        ks.load(is, password.toCharArray());
-        is.close();
-        return ks;
     }
 
 }

@@ -19,23 +19,6 @@ package org.opencps.pki;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.cert.Certificate;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -44,17 +27,6 @@ import junit.framework.TestSuite;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class BaseSignerTest extends TestCase {
-    private static final String certPath = "./src/test/java/resources/cert.pem";
-    private static final String ghCertPath = "./src/test/java/resources/github.pem";
-    private static final String rootCaPath = "./src/test/java/resources/rootca.pem";
-
-    private static final String keyStorePath = "./src/test/java/resources/opencsp.jks";
-    private static final String keyStorePass = "opencps";
-
-    X509Certificate cert;
-    CertificateFactory cf;
-    BaseSigner signer;
-
     /**
      * Create the test case
      */
@@ -69,58 +41,11 @@ public class BaseSignerTest extends TestCase {
     {
         return new TestSuite(BaseSignerTest.class);
     }
-
-    protected void setUp() throws CertificateException, FileNotFoundException {
-        cf = CertificateFactory.getInstance("X.509");
-        cert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(certPath)));
-        signer = mock(BaseSigner.class, CALLS_REAL_METHODS);
-    }
-
-    public void testReadCertificate() throws IOException {
-        byte[] encoded = Files.readAllBytes(Paths.get(certPath));
-        String string = new String(encoded, StandardCharsets.UTF_8);
-
-        CertificateInfo byteInfo = signer.readCertificate(encoded);
-        assertEquals("OpenCPS PKI", byteInfo.getCommonName());
-
-        CertificateInfo stringInfo = signer.readCertificate(string);
-        assertEquals("OpenCPS PKI", stringInfo.getCommonName());
-    }
-    
-    public void testValidateCertificate() throws CertificateException, KeyStoreException, NoSuchAlgorithmException, IOException {
-        assertFalse(signer.validateCertificate(cert));
-
-        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-        ks.load(null, null);
-
-        ks.setCertificateEntry("digicert", cf.generateCertificate(new FileInputStream(rootCaPath)));
-
-        X509Certificate ghCert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(ghCertPath)));
-        assertTrue(signer.validateCertificate(ghCert, ks));
-    }
     
     public void testHashAlgorithm() {
+    	BaseSigner signer = mock(BaseSigner.class, CALLS_REAL_METHODS);
         signer.setHashAlgorithm(HashAlgorithm.SHA512);
         assertEquals(HashAlgorithm.SHA512, signer.getHashAlgorithm());
-    }
-
-    public void testKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-        signer.setKeyStore(ks);
-        assertEquals(ks, signer.getKeyStore());
-
-        ks.load(null, null);
-        Certificate cert = cf.generateCertificate(new FileInputStream(rootCaPath));
-        ks.setCertificateEntry("digicert", cert);
-
-        File file = new File(keyStorePath);
-        if (!file.exists()) {
-            OutputStream os = new FileOutputStream(keyStorePath);
-            ks.store(os, keyStorePass.toCharArray());
-            os.close();
-        }
-        signer.loadKeyStore(keyStorePath, keyStorePass);
-        assertEquals(cert, signer.getKeyStore().getCertificate("digicert"));;
     }
 
 }

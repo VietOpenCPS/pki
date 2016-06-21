@@ -20,34 +20,21 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.cert.CRL;
 import java.security.cert.Certificate;
-import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import org.bouncycastle.cert.ocsp.BasicOCSPResp;
-
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.security.BouncyCastleDigest;
-import com.itextpdf.text.pdf.security.CRLVerifier;
 import com.itextpdf.text.pdf.security.CertificateUtil;
-import com.itextpdf.text.pdf.security.CertificateVerification;
 import com.itextpdf.text.pdf.security.DigestAlgorithms;
 import com.itextpdf.text.pdf.security.ExternalBlankSignatureContainer;
 import com.itextpdf.text.pdf.security.ExternalDigest;
@@ -55,12 +42,9 @@ import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
 import com.itextpdf.text.pdf.security.LtvTimestamp;
 import com.itextpdf.text.pdf.security.MakeSignature;
 import com.itextpdf.text.pdf.security.MakeSignature.CryptoStandard;
-import com.itextpdf.text.pdf.security.OCSPVerifier;
 import com.itextpdf.text.pdf.security.PdfPKCS7;
 import com.itextpdf.text.pdf.security.TSAClient;
 import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
-import com.itextpdf.text.pdf.security.VerificationException;
-import com.itextpdf.text.pdf.security.VerificationOK;
 
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
@@ -119,69 +103,7 @@ public class PdfSigner extends BaseSigner {
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#verifySignature()
-     */
-    @Override
-    public Boolean verifySignature(String filePath) {
-        return verifySignature(filePath, getKeyStore());
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#verifySignature()
-     */
-    @Override
-    public Boolean verifySignature(String filePath, KeyStore ks) {
-        Boolean verified = false;
-        try {
-            PdfReader reader = new PdfReader(filePath);
-            AcroFields fields = reader.getAcroFields();
-            ArrayList<String> names = fields.getSignatureNames();
-            for (String name : names) {
-                PdfPKCS7 pkcs7 = fields.verifySignature(name);
-                if (pkcs7.verify()) {
-                    Certificate[] certs = pkcs7.getSignCertificateChain();
-                    Calendar cal = pkcs7.getSignDate();
-                    List<VerificationException> errors = CertificateVerification.verifyCertificates(certs, ks, cal);
-                    if (errors.size() == 0) {
-                        X509Certificate signCert = (X509Certificate)certs[0];
-                        X509Certificate issuerCert = (certs.length > 1 ? (X509Certificate)certs[1] : null);
-                        verified = checkSignatureRevocation(pkcs7, signCert, issuerCert, cal.getTime()) && checkSignatureRevocation(pkcs7, signCert, issuerCert, new Date());
-                    }
-                }
-            }
-            reader.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return verified;
-    }
-
-    /**
-     * Check signature revocation
-     */
-    protected Boolean checkSignatureRevocation(PdfPKCS7 pkcs7, X509Certificate signCert, X509Certificate issuerCert, Date date) throws GeneralSecurityException, IOException {
-        List<BasicOCSPResp> ocsps = new ArrayList<BasicOCSPResp>();
-        if (pkcs7.getOcsp() != null)
-            ocsps.add(pkcs7.getOcsp());
-        OCSPVerifier ocspVerifier = new OCSPVerifier(null, ocsps);
-        List<VerificationOK> verification =
-            ocspVerifier.verify(signCert, issuerCert, date);
-        if (verification.size() == 0) {
-            List<X509CRL> crls = new ArrayList<X509CRL>();
-            if (pkcs7.getCRLs() != null) {
-                for (CRL crl : pkcs7.getCRLs())
-                    crls.add((X509CRL)crl);
-            }
-            CRLVerifier crlVerifier = new CRLVerifier(null, crls);
-            verification.addAll(crlVerifier.verify(signCert, issuerCert, date));
-        }
-        return verification.size() > 0;
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#computeHash()
+     * @see org.opencps.pki.Signer#computeHash()
      */
     @Override
     public byte[] computeHash() {
@@ -244,7 +166,7 @@ public class PdfSigner extends BaseSigner {
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#sign()
+     * @see org.opencps.pki.Signer#sign()
      */
     @Override
     public Boolean sign(byte[] signature) {
@@ -253,7 +175,7 @@ public class PdfSigner extends BaseSigner {
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.ServerSigner#sign()
+     * @see org.opencps.pki.Signer#sign()
      */
     @Override
     public Boolean sign(byte[] signature, String filePath) {
@@ -274,7 +196,7 @@ public class PdfSigner extends BaseSigner {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return signed ? verifySignature(signedFilePath) : false;
+        return signed;
     }
 
     /**
