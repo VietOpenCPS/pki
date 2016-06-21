@@ -92,6 +92,14 @@ public class PdfSignerTest extends TestCase {
         assertEquals("./src/test/java/resources/opencps.signed.pdf", signer.getSignedFilePath());
     }
 
+    public void testIsVisible() {
+        assertEquals(signer, signer.setIsVisible(false));
+        assertFalse(signer.getIsVisible());
+
+        assertEquals(signer, signer.setIsVisible(true));
+        assertTrue(signer.getIsVisible());
+    }
+
     public void testSignatureFieldName() {
         assertEquals(signer, signer.setSignatureFieldName("OpenCPS-Signature"));
         assertEquals("OpenCPS-Signature", signer.getSignatureFieldName());

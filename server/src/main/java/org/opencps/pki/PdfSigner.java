@@ -87,6 +87,11 @@ public class PdfSigner extends BaseSigner {
     private Calendar signDate;
 
     /**
+     * Signature is visible
+     */
+    private Boolean isVisible;
+
+    /**
      * Constructor
      *
      * @param filePath The path of pdf document
@@ -98,6 +103,7 @@ public class PdfSigner extends BaseSigner {
         tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
         signDate = Calendar.getInstance();
+        isVisible = true;
         this.cert= cert;
     }
 
@@ -129,24 +135,29 @@ public class PdfSigner extends BaseSigner {
             appearance.setSignDate(signDate);
             appearance.setLocation("OpenCPS PKI");
             appearance.setContact("OpenCPS PKI");
-            if (signatureImage != null) {
-                appearance.setSignatureGraphic(signatureImage.getImage());
-                appearance.setRenderingMode(PdfSignatureAppearance.RenderingMode.GRAPHIC);
-                
-                int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
-                int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
-                float llx = 36.0f;
-                float lly = 48.0f;
-                float urx = llx + signatureImageWidth;
-                float ury = lly + signatureImageHeight;
-                appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
+            if (!isVisible) {
+                appearance.setVisibleSignature(new Rectangle(0, 0, 0, 0), 1, signatureFieldName);
             }
             else {
-                if (cert != null) {
-                    CertificateInfo certInfo = new CertificateInfo(cert);
-                    appearance.setLayer2Text(certInfo.getCommonName());
+                if (signatureImage != null) {
+                    appearance.setSignatureGraphic(signatureImage.getImage());
+                    appearance.setRenderingMode(PdfSignatureAppearance.RenderingMode.GRAPHIC);
+
+                    int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
+                    int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
+                    float llx = 36.0f;
+                    float lly = 48.0f;
+                    float urx = llx + signatureImageWidth;
+                    float ury = lly + signatureImageHeight;
+                    appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
                 }
-                appearance.setVisibleSignature(new Rectangle(36, 48, 144, 80), 1, signatureFieldName);
+                else {
+                    if (cert != null) {
+                        CertificateInfo certInfo = new CertificateInfo(cert);
+                        appearance.setLayer2Text(certInfo.getCommonName());
+                    }
+                    appearance.setVisibleSignature(new Rectangle(36, 48, 144, 80), 1, signatureFieldName);
+                }
             }
 
             ExternalSignatureContainer external = new ExternalBlankSignatureContainer(PdfName.ADOBE_PPKLITE, PdfName.ADBE_PKCS7_DETACHED);
@@ -203,22 +214,37 @@ public class PdfSigner extends BaseSigner {
      * Get certificate 
      */
     public X509Certificate getCertificate() {
-    	return cert;
+        return cert;
     }
 
     /**
      * Get sign date
      */
     public Calendar getSignDate() {
-    	return signDate;
+        return signDate;
     }
 
     /**
      * Set sign date
      */
     public PdfSigner setSignDate(Calendar signDate) {
-    	this.signDate = signDate;
-    	return this;
+        this.signDate = signDate;
+        return this;
+    }
+
+    /**
+     * Get signature is visible
+     */
+    public Boolean getIsVisible() {
+        return isVisible;
+    }
+
+    /**
+     * Set signature is visible
+     */
+    public PdfSigner setIsVisible(Boolean isVisible) {
+        this.isVisible = isVisible;
+        return this;
     }
 
     /**
