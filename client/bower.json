@@ -37,6 +37,6 @@
   },
   "dependencies": {
     "jquery": "~1.11.2",
-    "hwcrypto": "~0.0.10"
+    "hwcrypto": "^0.0.10"
   }
 }
