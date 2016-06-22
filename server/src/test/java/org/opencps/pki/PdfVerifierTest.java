@@ -5,8 +5,8 @@ package org.opencps.pki;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
@@ -17,15 +17,11 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bouncycastle.asn1.ASN1Encoding;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
-import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 
 import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
@@ -74,17 +70,12 @@ public class PdfVerifierTest extends TestCase {
         byte[] hash = signer.computeHash();
 
         Security.addProvider(new BouncyCastleProvider());
-        File file = new File(keyPath);
-        PEMParser pemParser = new PEMParser(new FileReader(file));
-        PKCS8EncryptedPrivateKeyInfo keyInfo = (PKCS8EncryptedPrivateKeyInfo) pemParser.readObject();
-        pemParser.close();
-
-        JceOpenSSLPKCS8DecryptorProviderBuilder jce = new JceOpenSSLPKCS8DecryptorProviderBuilder();
-        InputDecryptorProvider decProv = jce.build("opencps".toCharArray());
-        PrivateKeyInfo info = keyInfo.decryptPrivateKeyInfo(decProv);
-        
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(info.getEncoded(ASN1Encoding.DER)));
+        PemReader pemReader = new PemReader(new InputStreamReader(new FileInputStream(keyPath)));
+        PemObject pemObject = pemReader.readPemObject();
+        PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(pemObject.getContent());
+        KeyFactory factory = KeyFactory.getInstance("RSA", "BC");
+        PrivateKey privateKey = factory.generatePrivate(privKeySpec);
+        pemReader.close();
         
         PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
         

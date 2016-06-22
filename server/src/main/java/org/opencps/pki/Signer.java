@@ -16,9 +16,6 @@
 */
 package org.opencps.pki;
 
-import java.security.KeyStore;
-import java.security.cert.X509Certificate;
-
 /**
  * Server signer interface
  *
