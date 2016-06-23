@@ -164,8 +164,8 @@ public class PdfSigner extends BaseSigner {
             MakeSignature.signExternalContainer(appearance, external, contentEstimated);
             
             ExternalDigest digest = new BouncyCastleDigest();
-            byte[] digestHash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest(hashAlgorithm.toString()));
-            PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, hashAlgorithm.toString(), null, digest, false);
+            byte[] digestHash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest(getHashAlgorithm().toString()));
+            PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, getHashAlgorithm().toString(), null, digest, false);
             hash = sgn.getAuthenticatedAttributeBytes(digestHash, null, null, CryptoStandard.CMS);
             reader.close();
             os.close();

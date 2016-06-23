@@ -25,7 +25,7 @@ public abstract class BaseSigner implements Signer {
     /**
      * Hash algorithm
      */
-    protected HashAlgorithm hashAlgorithm;
+    private HashAlgorithm hashAlgorithm;
 
     /**
      * Constructor
