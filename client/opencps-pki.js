@@ -27,8 +27,8 @@ $.extend($.signer, {
             value: false
         },
         signature: {
-            certificate: false
-            value: false,
+            certificate: false,
+            value: false
         },
         document: false,
         beforeSign: false,
