@@ -18,24 +18,68 @@ if (window.hwcrypto) {
     });
 }
 
+$.signer = $.signer || {};
+$.extend($.signer, {
+    options: {
+        hash: {
+            type: 'sha512',
+            hex: false,
+            value: false
+        },
+        signature: {
+            certificate: false
+            value: false,
+        },
+        document: false,
+        beforeSign: false,
+        afterSign: false,
+        onError: false
+    }
+    sign: function(options) {
+        if (window.hwcrypto) {
+            this.options = this.options || options;
+            if (this.options.beforeSign) {
+                this.options.beforeSign(this, this.options.hash);
+            }
+
+            window.hwcrypto.getCertificate({lang: 'en'}).then(function(certificate) {
+                window.hwcrypto.sign(certificate, {type: this.options.hash.type, hex: this.options.hash.hex}, {lang: 'en'}).then(function(signature) {
+                    this.options.signature.certificate = certificate.hex;
+                    this.options.signature.value = signature.hex;
+                    if (this.options.afterSign) {
+                        this.options.afterSign(this, this.options.signature);
+                    }
+                }, function(err) {
+                    if (this.options.onError) {
+                        this.options.onError(this, err);
+                    }
+                    console.log("sign() failed: " + err);
+                });
+            }, function(err) {
+                if (this.options.onError) {
+                    this.options.onError(this, err);
+                }
+                console.log("getCertificate() failed: " + err);
+            });
+        }
+        return this;
+    }
+});
+
 $.extend({
     getCertificate: function(){
         var cert = null;
         if (window.hwcrypto) {
             window.hwcrypto.getCertificate({lang: 'en'}).then(function(response) {
-                cert = hexToPem(response.hex);
+                cert = response.hex;
             }, function(err) {
-              console.log("getCertificate() failed: " + err);
+                console.log("getCertificate() failed: " + err);
             });
         }
         return cert;
     },
     sign: function(options) {
-      window.hwcrypto.sign(cert, {type: 'SHA-256', hex: hash}, {lang: 'en'}).then(function(response) {
-        console.log("Generated signature:\n" + response.hex.match(/.{1,64}/g).join("\n"));
-      }, function(err) {
-        console.log("sign() failed: " + err);
-      });
+        return $.signer.sign(options);
     }
 });
 
