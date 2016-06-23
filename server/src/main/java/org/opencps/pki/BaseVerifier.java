@@ -45,7 +45,7 @@ public abstract class BaseVerifier implements Verifier {
     /**
      * Java key store
      */
-    protected KeyStore ks;
+    private KeyStore ks;
 
     /**
      * Constructor
