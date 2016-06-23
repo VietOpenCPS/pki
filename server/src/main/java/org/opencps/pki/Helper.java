@@ -23,6 +23,7 @@ package org.opencps.pki;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class Helper {
+    final private static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
     /**
      * Strip file extension
@@ -37,6 +38,19 @@ public class Helper {
             return filePath;
         }
         return filePath.substring(0, n);
+    }
+
+    /**
+     * Converts an array of bytes into an hexadecimal string
+     */
+    public static String binToHex(byte[] data) {
+        char[] hexChars = new char[data.length * 2];
+        for ( int j = 0; j < data.length; j++ ) {
+            int v = data[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 
 }

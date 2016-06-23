@@ -44,4 +44,8 @@ public class HelperTest extends TestCase {
         assertEquals("/tmp/test", Helper.stripFileExtension("/tmp/test.txt"));
     }
 
+    public void testBinToHex() {
+        assertEquals("48656C6C6F20576F726C64", Helper.binToHex("Hello World".getBytes()));
+    }
+
 }
