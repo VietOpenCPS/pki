@@ -1,5 +1,5 @@
 /*!
- * OpenCPS PKI; version: 0.0.1
+ * OpenCPS PKI; version: 1.0.0
  * https://github.com/VietOpenCPS/pki
  * Copyright (c) 2016 OpenCPS Community;
  * Licensed under the AGPL V3+.
@@ -34,35 +34,36 @@ $.extend($.signer, {
         beforeSign: false,
         afterSign: false,
         onError: false
-    }
+    },
     sign: function(options) {
+        var signer = this;
         if (window.hwcrypto) {
-            this.options = this.options || options;
-            if (this.options.beforeSign) {
-                this.options.beforeSign(this, this.options.hash);
+            $.extend(signer.options, options);
+            if (signer.options.beforeSign) {
+                signer.options.beforeSign(signer, signer.options.hash);
             }
 
             window.hwcrypto.getCertificate({lang: 'en'}).then(function(certificate) {
-                window.hwcrypto.sign(certificate, {type: this.options.hash.type, hex: this.options.hash.hex}, {lang: 'en'}).then(function(signature) {
-                    this.options.signature.certificate = certificate.hex;
-                    this.options.signature.value = signature.hex;
-                    if (this.options.afterSign) {
-                        this.options.afterSign(this, this.options.signature);
+                window.hwcrypto.sign(certificate, {type: signer.options.hash.type, hex: signer.options.hash.hex}, {lang: 'en'}).then(function(signature) {
+                    signer.options.signature.certificate = certificate.hex;
+                    signer.options.signature.value = signature.hex;
+                    if (signer.options.afterSign) {
+                        signer.options.afterSign(signer, signer.options.signature);
                     }
                 }, function(err) {
-                    if (this.options.onError) {
-                        this.options.onError(this, err);
+                    if (signer.options.onError) {
+                        signer.options.onError(signer, err);
                     }
                     console.log("sign() failed: " + err);
                 });
             }, function(err) {
-                if (this.options.onError) {
-                    this.options.onError(this, err);
-                }
                 console.log("getCertificate() failed: " + err);
+                if (signer.options.onError) {
+                    signer.options.onError(signer, err);
+                }
             });
         }
-        return this;
+        return signer;
     }
 });
 
