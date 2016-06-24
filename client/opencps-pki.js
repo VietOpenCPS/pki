@@ -19,6 +19,13 @@ function hex2Array(hex) {
     }
 }
 
+function hasPlugin(mime) {
+    if(navigator.mimeTypes && mime in navigator.mimeTypes) {
+        return true;
+    }
+    return false;
+}
+
 function loadBcyPlugin() {
     var mime = 'application/x-cryptolib05plugin';
     var element = "bcy" + mime.replace('/', '').replace('-', '');
@@ -88,7 +95,7 @@ $.signer = $.signer || {};
 $.extend($.signer, {
     options: {
         hash: {
-            type: 'sha512',
+            type: 'sha256',
             hex: false,
             value: false
         },
@@ -108,11 +115,11 @@ $.extend($.signer, {
             signer.options.beforeSign(signer, signer.options.hash);
         }
 
-        if (window.hwcrypto) {
-            signHwCrypto(signer);
-        }
-        else {
+        if (hasPlugin('application/x-cryptolib05plugin')) {
             signBcy(signer);
+        }
+        else if (window.hwcrypto) {
+            signHwCrypto(signer);
         }
         return signer;
     }
