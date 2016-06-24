@@ -62,10 +62,10 @@ function signBcy(signer) {
 if (window.hwcrypto) {
     window.hwcrypto.use('auto');
     window.hwcrypto.debug().then(function(response) {
-      console.log('Debug: ' + response);
+        console.log('Debug: ' + response);
     }, function(err) {
-      console.log('debug() failed: ' + err);
-      return;
+        console.log('debug() failed: ' + err);
+        return;
     });
 }
 
