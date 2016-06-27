@@ -7,6 +7,8 @@
  */
 (function($) {
 "use strict";
+var digidoc_mime = 'application/x-digidoc';
+var bcy_mime = 'application/x-cryptolib05plugin';
 
 function hex2Array(hex) {
     if(typeof hex == 'string') {
@@ -27,12 +29,11 @@ function hasPlugin(mime) {
 }
 
 function loadBcyPlugin() {
-    var mime = 'application/x-cryptolib05plugin';
-    var element = "bcy" + mime.replace('/', '').replace('-', '');
+    var element = "bcy" + bcy_mime.replace('/', '').replace('-', '');
     if(document.getElementById(element)) {
         return document.getElementById(element);
     }
-    var objectTag = '<object id="' + element + '" type="' + mime + '" style="width: 1px; height: 1px; position: absolute; visibility: hidden;"></object>';
+    var objectTag = '<object id="' + element + '" type="' + bcy_mime + '" style="width: 1px; height: 1px; position: absolute; visibility: hidden;"></object>';
     var div = document.createElement("div");
     div.setAttribute("id", 'plugin' + element);
     document.body.appendChild(div);
@@ -115,11 +116,11 @@ $.extend($.signer, {
             signer.options.beforeSign(signer, signer.options.hash);
         }
 
-        if (hasPlugin('application/x-cryptolib05plugin')) {
-            signBcy(signer);
-        }
-        else if (window.hwcrypto) {
+        if (window.hwcrypto) {
             signHwCrypto(signer);
+        }
+        else if (hasPlugin(bcy_mime)) {
+            signBcy(signer);
         }
         return signer;
     }
