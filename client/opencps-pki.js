@@ -28,12 +28,12 @@ function hasPlugin(mime) {
     return false;
 }
 
-function loadBcyPlugin() {
-    var element = "bcy" + bcy_mime.replace('/', '').replace('-', '');
+function loadSignaturePlugin(mime) {
+    var element = "bcy" + mime.replace('/', '').replace('-', '');
     if(document.getElementById(element)) {
         return document.getElementById(element);
     }
-    var objectTag = '<object id="' + element + '" type="' + bcy_mime + '" style="width: 1px; height: 1px; position: absolute; visibility: hidden;"></object>';
+    var objectTag = '<object id="' + element + '" type="' + mime + '" style="width: 1px; height: 1px; position: absolute; visibility: hidden;"></object>';
     var div = document.createElement("div");
     div.setAttribute("id", 'plugin' + element);
     document.body.appendChild(div);
@@ -42,7 +42,7 @@ function loadBcyPlugin() {
 }
 
 function signBcy(signer) {
-    var plugin = loadBcyPlugin();
+    var plugin = loadSignaturePlugin(bcy_mime);
     if (plugin.valid) {
         var code = plugin.Sign(hex2Array(signer.options.hash.hex));
         if (code === 0 || code === 7) {
