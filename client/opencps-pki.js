@@ -104,6 +104,7 @@ $.extend($.signer, {
             certificate: false,
             value: false
         },
+        backend: 'hwcrypto',
         document: false,
         beforeSign: false,
         afterSign: false,
@@ -116,10 +117,10 @@ $.extend($.signer, {
             signer.options.beforeSign(signer, signer.options.hash);
         }
 
-        if (window.hwcrypto) {
+        if (window.hwcrypto && signer.options.backend === 'hwcrypto') {
             signHwCrypto(signer);
         }
-        else if (hasPlugin(bcy_mime)) {
+        else if (hasPlugin(bcy_mime) && signer.options.backend === 'bcy') {
             signBcy(signer);
         }
         return signer;
