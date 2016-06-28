@@ -103,8 +103,27 @@ public class PdfSigner extends BaseSigner {
         originFilePath = filePath;
         tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
         signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
-        signDate = Calendar.getInstance();
         isVisible = true;
+        signDate = Calendar.getInstance();
+        this.cert= cert;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param filePath The path of pdf document
+     * @param cert The certificate of user
+     * @param tempFilePath Temporary Pdf document file path after generate hash key
+     * @param signedFilePath Signed Pdf document file path
+     * @param isVisible Signature is visible
+     */
+    public PdfSigner(String filePath, X509Certificate cert, String tempFilePath, String signedFilePath, boolean isVisible) {
+        super();
+        originFilePath = filePath;
+        this.tempFilePath = tempFilePath;
+        this.signedFilePath = signedFilePath;
+        this.isVisible = isVisible;
+        signDate = Calendar.getInstance();
         this.cert= cert;
     }
 
@@ -114,15 +133,29 @@ public class PdfSigner extends BaseSigner {
      */
     @Override
     public byte[] computeHash() {
-        return computeHash(36.0f, 48.0f);
+        float llx = 36.0f;
+        float lly = 48.0f;
+        if (signatureImage != null) {
+            int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
+            int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
+            float urx = llx + signatureImageWidth;
+            float ury = lly + signatureImageHeight;
+            return computeHash(llx, lly, urx, ury);
+        }
+        else {
+            return computeHash(llx, lly, 144, 80);
+        }
     }
 
     /**
-     * Compute hash key with lower left corner of rectangle
+     * Compute hash key with corner coordinates of rectangle
+     *
      * @param llx lower left x
      * @param lly lower left y
+     * @param urx upper right x
+     * @param ury upper right y
      */
-    public byte[] computeHash(float llx, float lly) {
+    public byte[] computeHash(float llx, float lly, float urx, float ury) {
         byte hash[] = null;
         int contentEstimated = 8192;
         try {
@@ -152,11 +185,6 @@ public class PdfSigner extends BaseSigner {
                 if (signatureImage != null) {
                     appearance.setSignatureGraphic(signatureImage.getImage());
                     appearance.setRenderingMode(PdfSignatureAppearance.RenderingMode.GRAPHIC);
-
-                    int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
-                    int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
-                    float urx = llx + signatureImageWidth;
-                    float ury = lly + signatureImageHeight;
                     appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
                 }
                 else {
@@ -164,7 +192,7 @@ public class PdfSigner extends BaseSigner {
                         CertificateInfo certInfo = new CertificateInfo(cert);
                         appearance.setLayer2Text(certInfo.getCommonName());
                     }
-                    appearance.setVisibleSignature(new Rectangle(llx, lly, 144, 80), 1, signatureFieldName);
+                    appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
                 }
             }
 
