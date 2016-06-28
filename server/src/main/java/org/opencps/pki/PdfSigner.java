@@ -47,6 +47,7 @@ import com.itextpdf.text.pdf.security.TSAClient;
 import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
 
 /**
+ * Signer for pdf document
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class PdfSigner extends BaseSigner {
@@ -113,6 +114,15 @@ public class PdfSigner extends BaseSigner {
      */
     @Override
     public byte[] computeHash() {
+        return computeHash(36.0f, 48.0f);
+    }
+
+    /**
+     * Compute hash key with lower left corner of rectangle
+     * @param llx lower left x
+     * @param lly lower left y
+     */
+    public byte[] computeHash(float llx, float lly) {
         byte hash[] = null;
         int contentEstimated = 8192;
         try {
@@ -145,8 +155,6 @@ public class PdfSigner extends BaseSigner {
 
                     int signatureImageWidth = signatureImage.getBufferedImage().getWidth();
                     int signatureImageHeight = signatureImage.getBufferedImage().getHeight();
-                    float llx = 36.0f;
-                    float lly = 48.0f;
                     float urx = llx + signatureImageWidth;
                     float ury = lly + signatureImageHeight;
                     appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
@@ -156,7 +164,7 @@ public class PdfSigner extends BaseSigner {
                         CertificateInfo certInfo = new CertificateInfo(cert);
                         appearance.setLayer2Text(certInfo.getCommonName());
                     }
-                    appearance.setVisibleSignature(new Rectangle(36, 48, 144, 80), 1, signatureFieldName);
+                    appearance.setVisibleSignature(new Rectangle(llx, lly, 144, 80), 1, signatureFieldName);
                 }
             }
 

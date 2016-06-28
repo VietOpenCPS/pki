@@ -42,7 +42,6 @@ import com.itextpdf.text.pdf.security.VerificationOK;
 /**
  * Verifier for pdf document
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
- *
  */
 public class PdfVerifier extends BaseVerifier {
 
