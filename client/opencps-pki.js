@@ -54,7 +54,7 @@ function signBcy(signer) {
         }
         else {
             if (signer.options.onError) {
-                signer.options.onError(signer, 'sign() failed');
+                signer.options.onError(signer, 'sign() failed: ' + plugin.ErrorMessage);
             }
         }
     }
