@@ -10,17 +10,6 @@
 var digidoc_mime = 'application/x-digidoc';
 var bcy_mime = 'application/x-cryptolib05plugin';
 
-function hex2Array(hex) {
-    if(typeof hex == 'string') {
-        var len = Math.floor(hex.length / 2);
-        var ret = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-            ret[i] = parseInt(hex.substr(i * 2, 2), 16);
-        }
-        return ret;
-    }
-}
-
 function hasPlugin(mime) {
     if(navigator.mimeTypes && mime in navigator.mimeTypes) {
         return true;
@@ -29,7 +18,7 @@ function hasPlugin(mime) {
 }
 
 function loadSignaturePlugin(mime) {
-    var element = "bcy" + mime.replace('/', '').replace('-', '');
+    var element = mime.replace('/', '').replace('-', '');
     if(document.getElementById(element)) {
         return document.getElementById(element);
     }
@@ -53,6 +42,7 @@ function signBcy(signer) {
         }
         else {
             if (signer.options.onError) {
+                console.log("sign() failed: " + plugin.ErrorMessage);
                 signer.options.onError(signer, 'sign() failed: ' + plugin.ErrorMessage);
             }
         }
@@ -78,10 +68,10 @@ function signHwCrypto(signer) {
                 signer.options.afterSign(signer, signer.options.signature);
             }
         }, function(err) {
+            console.log("sign() failed: " + err);
             if (signer.options.onError) {
                 signer.options.onError(signer, err);
             }
-            console.log("sign() failed: " + err);
         });
     }, function(err) {
         console.log("getCertificate() failed: " + err);
