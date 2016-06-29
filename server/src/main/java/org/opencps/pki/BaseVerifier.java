@@ -60,7 +60,7 @@ public abstract class BaseVerifier implements Verifier {
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.Signer#readCertificate()
+     * @see org.opencps.pki.Verifier#readCertificate()
      */
     @Override
     public CertificateInfo readCertificate(byte[] bytes) {
@@ -76,7 +76,7 @@ public abstract class BaseVerifier implements Verifier {
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.Signer#readCertificate()
+     * @see org.opencps.pki.Verifier#readCertificate()
      */
     @Override
     public CertificateInfo readCertificate(String cert) {

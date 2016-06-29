@@ -24,24 +24,35 @@ public class XMLSigner extends BaseSigner {
 
     /**
      * Constructor
-     * @throws InvalidAlgorithmParameterException 
-     * @throws NoSuchAlgorithmException 
      */
     public XMLSigner() {
+        super();
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.Signer#computeHash()
+     */
     @Override
     public byte[] computeHash() {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.Signer#sign()
+     */
     @Override
     public Boolean sign(byte[] signature) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.Signer#sign()
+     */
     @Override
     public Boolean sign(byte[] signature, String filePath) {
         // TODO Auto-generated method stub
