@@ -185,15 +185,14 @@ public class PdfSigner extends BaseSigner {
                 if (signatureImage != null) {
                     appearance.setSignatureGraphic(signatureImage.getImage());
                     appearance.setRenderingMode(PdfSignatureAppearance.RenderingMode.GRAPHIC);
-                    appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
                 }
                 else {
                     if (cert != null) {
                         CertificateInfo certInfo = new CertificateInfo(cert);
                         appearance.setLayer2Text(certInfo.getCommonName());
                     }
-                    appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
                 }
+                appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
             }
 
             ExternalSignatureContainer external = new ExternalBlankSignatureContainer(PdfName.ADOBE_PPKLITE, PdfName.ADBE_PKCS7_DETACHED);
