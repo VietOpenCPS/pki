@@ -42,6 +42,7 @@ function signBcy(signer) {
         }
         else {
             if (signer.options.onError) {
+                console.log("sign() failed: " + plugin.ErrorMessage);
                 signer.options.onError(signer, 'sign() failed: ' + plugin.ErrorMessage);
             }
         }
@@ -67,10 +68,10 @@ function signHwCrypto(signer) {
                 signer.options.afterSign(signer, signer.options.signature);
             }
         }, function(err) {
+            console.log("sign() failed: " + err);
             if (signer.options.onError) {
                 signer.options.onError(signer, err);
             }
-            console.log("sign() failed: " + err);
         });
     }, function(err) {
         console.log("getCertificate() failed: " + err);
