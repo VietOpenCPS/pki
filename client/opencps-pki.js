@@ -46,8 +46,7 @@ function signBcy(signer) {
     if (plugin.valid) {
         var code = plugin.Sign(hexToBase64(signer.options.hash.hex));
         if (code === 0 || code === 7) {
-            var sign = plugin.Signature;
-            signer.options.signature.value = sign;
+            signer.options.signature.value = plugin.Signature;
             if (signer.options.afterSign) {
                 signer.options.afterSign(signer, signer.options.signature);
             }
@@ -73,8 +72,8 @@ if (window.hwcrypto) {
 function signHwCrypto(signer) {
     window.hwcrypto.getCertificate({lang: 'en'}).then(function(certificate) {
         window.hwcrypto.sign(certificate, {type: signer.options.hash.type, hex: signer.options.hash.hex}, {lang: 'en'}).then(function(signature) {
-            signer.options.signature.certificate = certificate.hex;
-            signer.options.signature.value = signature.hex;
+            signer.options.signature.certificate = hexToBase64(certificate.hex);
+            signer.options.signature.value = hexToBase64(signature.hex);
             if (signer.options.afterSign) {
                 signer.options.afterSign(signer, signer.options.signature);
             }
@@ -132,7 +131,7 @@ $.extend({
         var cert = null;
         if (window.hwcrypto) {
             window.hwcrypto.getCertificate({lang: 'en'}).then(function(response) {
-                cert = response.hex;
+                cert = hexToBase64(response.hex);
             }, function(err) {
                 console.log("getCertificate() failed: " + err);
             });
