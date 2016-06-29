@@ -10,17 +10,6 @@
 var digidoc_mime = 'application/x-digidoc';
 var bcy_mime = 'application/x-cryptolib05plugin';
 
-function hex2Array(hex) {
-    if(typeof hex == 'string') {
-        var len = Math.floor(hex.length / 2);
-        var ret = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-            ret[i] = parseInt(hex.substr(i * 2, 2), 16);
-        }
-        return ret;
-    }
-}
-
 function hasPlugin(mime) {
     if(navigator.mimeTypes && mime in navigator.mimeTypes) {
         return true;
