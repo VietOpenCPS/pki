@@ -18,7 +18,7 @@ function hasPlugin(mime) {
 }
 
 function loadSignaturePlugin(mime) {
-    var element = "bcy" + mime.replace('/', '').replace('-', '');
+    var element = mime.replace('/', '').replace('-', '');
     if(document.getElementById(element)) {
         return document.getElementById(element);
     }
