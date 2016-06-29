@@ -44,7 +44,7 @@ function loadSignaturePlugin(mime) {
 function signBcy(signer) {
     var plugin = loadSignaturePlugin(bcy_mime);
     if (plugin.valid) {
-        var code = plugin.Sign(hex2Array(signer.options.hash.hex));
+        var code = plugin.Sign(hexToBase64(signer.options.hash.hex));
         if (code === 0 || code === 7) {
             var sign = plugin.Signature;
             signer.options.signature.value = sign;
