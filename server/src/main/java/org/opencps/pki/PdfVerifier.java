@@ -16,7 +16,10 @@
 */
 package org.opencps.pki;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.CRL;
@@ -60,7 +63,23 @@ public class PdfVerifier extends BaseVerifier {
     public List<CertificateInfo> getSignatureInfo(String filePath) {
         List<CertificateInfo> list = new ArrayList<CertificateInfo>();
         try {
-            PdfReader reader = new PdfReader(filePath);
+            InputStream is = new FileInputStream(filePath);
+            list = getSignatureInfo(is);
+            is.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return list;
+    }
+    
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.Verifier#verifySignature()
+     */
+    public List<CertificateInfo> getSignatureInfo(InputStream inputStream) {
+        List<CertificateInfo> list = new ArrayList<CertificateInfo>();
+        try {
+            PdfReader reader = new PdfReader(inputStream);
             AcroFields fields = reader.getAcroFields();
             ArrayList<String> names = fields.getSignatureNames();
             for (String name : names) {
@@ -90,11 +109,35 @@ public class PdfVerifier extends BaseVerifier {
      * (non-Javadoc)
      * @see org.opencps.pki.Verifier#verifySignature()
      */
+    public Boolean verifySignature(InputStream inputStream) {
+        return verifySignature(inputStream, getKeyStore());
+    }
+
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.Verifier#verifySignature()
+     */
     @Override
     public Boolean verifySignature(String filePath, KeyStore ks) {
         Boolean verified = false;
         try {
-            PdfReader reader = new PdfReader(filePath);
+            InputStream is = new FileInputStream(filePath);
+            verified = verifySignature(is, ks);
+            is.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return verified;
+    }
+    
+    /**
+     * (non-Javadoc)
+     * @see org.opencps.pki.Verifier#verifySignature()
+     */
+    public Boolean verifySignature(InputStream inputStream, KeyStore ks) {
+        Boolean verified = false;
+        try {
+            PdfReader reader = new PdfReader(inputStream);
             AcroFields fields = reader.getAcroFields();
             ArrayList<String> names = fields.getSignatureNames();
             for (String name : names) {
