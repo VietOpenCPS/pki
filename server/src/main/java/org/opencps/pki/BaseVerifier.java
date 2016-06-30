@@ -135,8 +135,16 @@ public abstract class BaseVerifier implements Verifier {
      */
     public KeyStore loadKeyStore(String filePath, String password) throws NoSuchAlgorithmException, CertificateException, IOException {
         InputStream is = new FileInputStream(filePath);
-        ks.load(is, password.toCharArray());
+        loadKeyStore(is, password);
         is.close();
+        return ks;
+    }
+    
+    /**
+     * Load key store from input stream
+     */
+    public KeyStore loadKeyStore(InputStream is, String password) throws NoSuchAlgorithmException, CertificateException, IOException {
+        ks.load(is, password.toCharArray());
         return ks;
     }
 
