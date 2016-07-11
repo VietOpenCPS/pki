@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.SignatureException;
 import java.security.cert.CRL;
 import java.security.cert.Certificate;
 import java.security.cert.X509CRL;
@@ -93,43 +94,47 @@ public class PdfVerifier extends BaseVerifier {
 
     /**
      * (non-Javadoc)
+     * @throws SignatureException 
      * @see org.opencps.pki.Verifier#verifySignature()
      */
     @Override
-    public Boolean verifySignature(String filePath) {
+    public Boolean verifySignature(String filePath) throws SignatureException {
         return verifySignature(filePath, getKeyStore());
     }
 
     /**
      * (non-Javadoc)
+     * @throws SignatureException 
      * @see org.opencps.pki.Verifier#verifySignature()
      */
-    public Boolean verifySignature(InputStream inputStream) {
+    public Boolean verifySignature(InputStream inputStream) throws SignatureException {
         return verifySignature(inputStream, getKeyStore());
     }
 
     /**
      * (non-Javadoc)
+     * @throws SignatureException 
      * @see org.opencps.pki.Verifier#verifySignature()
      */
     @Override
-    public Boolean verifySignature(String filePath, KeyStore ks) {
+    public Boolean verifySignature(String filePath, KeyStore ks) throws SignatureException {
         Boolean verified = false;
         try {
             InputStream is = new FileInputStream(filePath);
             verified = verifySignature(is, ks);
             is.close();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SignatureException(e);
         }
         return verified;
     }
     
     /**
      * (non-Javadoc)
+     * @throws SignatureException 
      * @see org.opencps.pki.Verifier#verifySignature()
      */
-    public Boolean verifySignature(InputStream inputStream, KeyStore ks) {
+    public Boolean verifySignature(InputStream inputStream, KeyStore ks) throws SignatureException {
         Boolean verified = false;
         try {
             PdfReader reader = new PdfReader(inputStream);
@@ -150,7 +155,7 @@ public class PdfVerifier extends BaseVerifier {
             }
             reader.close();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SignatureException(e);
         }
         return verified;
     }
