@@ -31,7 +31,7 @@ public interface Signer {
     /**
      * Compute hash key
      */
-    public byte[] computeHash();
+    public byte[] computeHash() throws SignatureException;
     
     /**
      * Get hash algorithm

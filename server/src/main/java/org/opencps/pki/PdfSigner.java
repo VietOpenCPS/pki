@@ -131,10 +131,11 @@ public class PdfSigner extends BaseSigner {
 
     /**
      * (non-Javadoc)
+     * @throws SignatureException 
      * @see org.opencps.pki.Signer#computeHash()
      */
     @Override
-    public byte[] computeHash() {
+    public byte[] computeHash() throws SignatureException {
         float llx = 36.0f;
         float lly = 48.0f;
         if (signatureImage != null) {
@@ -156,8 +157,9 @@ public class PdfSigner extends BaseSigner {
      * @param lly lower left y
      * @param urx upper right x
      * @param ury upper right y
+     * @throws SignatureException 
      */
-    public byte[] computeHash(float llx, float lly, float urx, float ury) {
+    public byte[] computeHash(float llx, float lly, float urx, float ury) throws SignatureException {
         byte hash[] = null;
         int contentEstimated = 8192;
         try {
@@ -206,7 +208,7 @@ public class PdfSigner extends BaseSigner {
             reader.close();
             os.close();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SignatureException(e);
         }
         return hash;
     }

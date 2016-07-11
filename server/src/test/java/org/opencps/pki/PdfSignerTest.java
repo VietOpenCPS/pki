@@ -26,6 +26,7 @@ import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -109,7 +110,7 @@ public class PdfSignerTest extends TestCase {
         assertEquals(128, bufferedImage.getHeight());
     }
 
-    public void testComputeHash() throws IOException {
+    public void testComputeHash() throws IOException, SignatureException {
         signer.setSignatureGraphic(signImagePath);
         byte[] hash = signer.computeHash();
         assertTrue(hash.length > 0);
