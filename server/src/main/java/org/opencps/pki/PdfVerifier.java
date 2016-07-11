@@ -84,7 +84,7 @@ public class PdfVerifier extends BaseVerifier {
             ArrayList<String> names = fields.getSignatureNames();
             for (String name : names) {
                 PdfPKCS7 pkcs7 = fields.verifySignature(name);
-                list.add(new SignatureInfo(pkcs7));
+                list.add(new PdfSignatureInfo(pkcs7));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
