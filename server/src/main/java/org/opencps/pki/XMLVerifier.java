@@ -37,7 +37,7 @@ public class XMLVerifier extends BaseVerifier {
      * @see org.opencps.pki.Verifier#getSignatureInfo()
      */
     @Override
-    public List<CertificateInfo> getSignatureInfo(String filePath) {
+    public List<SignatureInfo> getSignatureInfo(String filePath) {
         // TODO Auto-generated method stub
         return null;
     }
