@@ -60,8 +60,8 @@ public class PdfVerifier extends BaseVerifier {
      * @see org.opencps.pki.Verifier#verifySignature()
      */
     @Override
-    public List<PdfSignatureInfo> getSignatureInfo(String filePath) {
-        List<PdfSignatureInfo> list = new ArrayList<PdfSignatureInfo>();
+    public List<SignatureInfo> getSignatureInfo(String filePath) {
+        List<SignatureInfo> list = new ArrayList<SignatureInfo>();
         try {
             InputStream is = new FileInputStream(filePath);
             list = getSignatureInfo(is);
@@ -76,15 +76,15 @@ public class PdfVerifier extends BaseVerifier {
      * (non-Javadoc)
      * @see org.opencps.pki.Verifier#verifySignature()
      */
-    public List<PdfSignatureInfo> getSignatureInfo(InputStream inputStream) {
-        List<PdfSignatureInfo> list = new ArrayList<PdfSignatureInfo>();
+    public List<SignatureInfo> getSignatureInfo(InputStream inputStream) {
+        List<SignatureInfo> list = new ArrayList<SignatureInfo>();
         try {
             PdfReader reader = new PdfReader(inputStream);
             AcroFields fields = reader.getAcroFields();
             ArrayList<String> names = fields.getSignatureNames();
             for (String name : names) {
                 PdfPKCS7 pkcs7 = fields.verifySignature(name);
-                list.add(new PdfSignatureInfo(pkcs7));
+                list.add(new SignatureInfo(pkcs7));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
