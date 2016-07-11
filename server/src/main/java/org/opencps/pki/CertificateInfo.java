@@ -20,12 +20,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
-import org.bouncycastle.asn1.x500.RDN;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
-
 /**
  * Certificate information of user
  *
@@ -35,47 +29,40 @@ public class CertificateInfo {
 
     private X509Certificate cert;
 
-    private X500Name x500name;
-
     /**
      * Constructor
      * @throws CertificateEncodingException 
      */
     public CertificateInfo(X509Certificate cert) throws CertificateEncodingException {
         this.cert = cert;
-        x500name = new JcaX509CertificateHolder(this.cert).getSubject();
     }
 
     /**
      * Get common name of certificate
      */
     public String getCommonName() {
-        RDN cn = x500name.getRDNs(BCStyle.CN)[0];
-        return IETFUtils.valueToString(cn.getFirst().getValue());
+    	return com.itextpdf.text.pdf.security.CertificateInfo.getSubjectFields(cert).getField("CN");
     }
 
     /**
      * Get organization unit of certificate
      */
     public String getOrganizationUnit() {
-        RDN cn = x500name.getRDNs(BCStyle.OU)[0];
-        return IETFUtils.valueToString(cn.getFirst().getValue());
+    	return com.itextpdf.text.pdf.security.CertificateInfo.getSubjectFields(cert).getField("OU");
     }
 
     /**
      * Get organization of certificate
      */
     public String getOrganization() {
-        RDN cn = x500name.getRDNs(BCStyle.O)[0];
-        return IETFUtils.valueToString(cn.getFirst().getValue());
+    	return com.itextpdf.text.pdf.security.CertificateInfo.getSubjectFields(cert).getField("O");
     }
 
     /**
      * Get email of certificate
      */
     public String getEmail() {
-        RDN cn = x500name.getRDNs(BCStyle.E)[0];
-        return IETFUtils.valueToString(cn.getFirst().getValue());
+    	return com.itextpdf.text.pdf.security.CertificateInfo.getSubjectFields(cert).getField("E");
     }
 
     /**

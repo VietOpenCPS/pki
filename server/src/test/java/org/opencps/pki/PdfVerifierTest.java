@@ -20,12 +20,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +46,8 @@ import com.itextpdf.text.pdf.security.PrivateKeySignature;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import sun.security.rsa.RSACore;
+import sun.security.rsa.RSAKeyFactory;
 
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
@@ -80,6 +84,7 @@ public class PdfVerifierTest extends TestCase {
         signer = new PdfSigner(pdfPath, cert);
         verifier = new PdfVerifier();
         signer.setSignatureGraphic(signImagePath);
+        signer.setHashAlgorithm(HashAlgorithm.SHA1);
         byte[] hash = signer.computeHash();
 
         Security.addProvider(new BouncyCastleProvider());
@@ -111,9 +116,9 @@ public class PdfVerifierTest extends TestCase {
     }
     
     public void testGetSignatureInfo() {
-        List<CertificateInfo> infors = verifier.getSignatureInfo(signer.getSignedFilePath());
-        CertificateInfo infor = infors.size() > 0 ? infors.get(0) : null;
-        assertEquals("OpenCPS PKI", infor.getCommonName());
+        List<SignatureInfo> infors = verifier.getSignatureInfo(signer.getSignedFilePath());
+        SignatureInfo infor = infors.size() > 0 ? infors.get(0) : null;
+        assertEquals("OpenCPS PKI", infor.getCertificateInfo().getCommonName());
     }
 
 }
