@@ -17,7 +17,6 @@
 package org.opencps.pki;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
@@ -60,8 +59,8 @@ public class PdfVerifier extends BaseVerifier {
      * @see org.opencps.pki.Verifier#verifySignature()
      */
     @Override
-    public List<CertificateInfo> getSignatureInfo(String filePath) {
-        List<CertificateInfo> list = new ArrayList<CertificateInfo>();
+    public List<SignatureInfo> getSignatureInfo(String filePath) {
+        List<SignatureInfo> list = new ArrayList<SignatureInfo>();
         try {
             InputStream is = new FileInputStream(filePath);
             list = getSignatureInfo(is);
@@ -76,19 +75,15 @@ public class PdfVerifier extends BaseVerifier {
      * (non-Javadoc)
      * @see org.opencps.pki.Verifier#verifySignature()
      */
-    public List<CertificateInfo> getSignatureInfo(InputStream inputStream) {
-        List<CertificateInfo> list = new ArrayList<CertificateInfo>();
+    public List<SignatureInfo> getSignatureInfo(InputStream inputStream) {
+        List<SignatureInfo> list = new ArrayList<SignatureInfo>();
         try {
             PdfReader reader = new PdfReader(inputStream);
             AcroFields fields = reader.getAcroFields();
             ArrayList<String> names = fields.getSignatureNames();
             for (String name : names) {
                 PdfPKCS7 pkcs7 = fields.verifySignature(name);
-                Certificate[] certs = pkcs7.getSignCertificateChain();
-                if (certs.length > 0) {
-                    X509Certificate cert = (X509Certificate)certs[0];
-                    list.add(new CertificateInfo((X509Certificate) cert));
-                }
+                list.add(new SignatureInfo(pkcs7));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -182,5 +177,4 @@ public class PdfVerifier extends BaseVerifier {
         }
         return verification.size() > 0;
     }
-
 }

@@ -51,7 +51,7 @@ public interface Verifier {
     /**
      * Get signature information from signed document
      */
-    public List<CertificateInfo> getSignatureInfo(String filePath);
+    public List<SignatureInfo> getSignatureInfo(String filePath);
     
     /**
      * Verify signature of document
