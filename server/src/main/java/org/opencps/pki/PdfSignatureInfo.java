@@ -28,7 +28,7 @@ import com.itextpdf.text.pdf.security.PdfPKCS7;
  *
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class SignatureInfo {
+public class PdfSignatureInfo {
 
     private PdfPKCS7 pkcs7;
 
@@ -42,7 +42,7 @@ public class SignatureInfo {
      * Constructor
      * @throws CertificateEncodingException 
      */
-    public SignatureInfo(PdfPKCS7 pkcs7) throws CertificateEncodingException {
+    public PdfSignatureInfo(PdfPKCS7 pkcs7) throws CertificateEncodingException {
         this.pkcs7 = pkcs7;
         X509Certificate cert = (X509Certificate) pkcs7.getSigningCertificate();
         if (cert != null) {

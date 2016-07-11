@@ -52,7 +52,7 @@ public interface Verifier {
     /**
      * Get signature information from signed document
      */
-    public List<SignatureInfo> getSignatureInfo(String filePath);
+    public List<PdfSignatureInfo> getSignatureInfo(String filePath);
     
     /**
      * Verify signature of document
