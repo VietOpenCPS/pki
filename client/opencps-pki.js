@@ -18,6 +18,7 @@ function hasPlugin(mime) {
 }
 
 function loadSignaturePlugin(mime) {
+    console.log('Load signature plugin for: ' + mime);
     var element = mime.replace('/', '').replace('-', '');
     if(document.getElementById(element)) {
         return document.getElementById(element);
@@ -35,6 +36,7 @@ function signBcy(signer) {
     if (plugin.valid) {
         var code = plugin.Sign(hexToBase64(signer.options.hash.hex));
         if (code === 0 || code === 7) {
+            console.log('Signature value: ' + plugin.Signature);
             signer.options.signature.value = plugin.Signature;
             if (signer.options.afterSign) {
                 signer.options.afterSign(signer, signer.options.signature);
@@ -42,7 +44,7 @@ function signBcy(signer) {
         }
         else {
             if (signer.options.onError) {
-                console.log("sign() failed: " + plugin.ErrorMessage);
+                console.log('sign() failed: ' + plugin.ErrorMessage);
                 signer.options.onError(signer, 'sign() failed: ' + plugin.ErrorMessage);
             }
         }
@@ -61,20 +63,22 @@ if (window.hwcrypto) {
 
 function signHwCrypto(signer) {
     window.hwcrypto.getCertificate({lang: 'en'}).then(function(certificate) {
+        console.log('Certificate value: ' + hexToBase64(certificate.hex));
         window.hwcrypto.sign(certificate, {type: signer.options.hash.type, hex: signer.options.hash.hex}, {lang: 'en'}).then(function(signature) {
             signer.options.signature.certificate = hexToBase64(certificate.hex);
             signer.options.signature.value = hexToBase64(signature.hex);
+            console.log('Signature value: ' + signer.options.signature.value);
             if (signer.options.afterSign) {
                 signer.options.afterSign(signer, signer.options.signature);
             }
         }, function(err) {
-            console.log("sign() failed: " + err);
+            console.log('sign() failed: ' + err);
             if (signer.options.onError) {
                 signer.options.onError(signer, err);
             }
         });
     }, function(err) {
-        console.log("getCertificate() failed: " + err);
+        console.log('getCertificate() failed: ' + err);
         if (signer.options.onError) {
             signer.options.onError(signer, err);
         }
@@ -102,6 +106,7 @@ $.extend($.signer, {
     sign: function(options) {
         var signer = this;
         $.extend(signer.options, options);
+        console.log('Hash value: ' + hexToBase64(signer.options.hash.hex));
         if (signer.options.beforeSign) {
             signer.options.beforeSign(signer, signer.options.hash);
         }
@@ -122,8 +127,9 @@ $.extend({
         if (window.hwcrypto) {
             window.hwcrypto.getCertificate({lang: 'en'}).then(function(response) {
                 cert = hexToBase64(response.hex);
+                console.log('Certificate value: ' + cert);
             }, function(err) {
-                console.log("getCertificate() failed: " + err);
+                console.log('getCertificate() failed: ' + err);
             });
         }
         return cert;
