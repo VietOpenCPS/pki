@@ -17,11 +17,7 @@
 package org.opencps.pki;
 
 import java.security.GeneralSecurityException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.Calendar;
-
-import com.itextpdf.text.pdf.security.PdfPKCS7;
 
 /**
  * Signature information of document
