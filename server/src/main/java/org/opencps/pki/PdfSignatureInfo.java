@@ -17,7 +17,6 @@
 package org.opencps.pki;
 
 import java.security.GeneralSecurityException;
-import java.security.cert.X509Certificate;
 
 import com.itextpdf.text.pdf.security.PdfPKCS7;
 
