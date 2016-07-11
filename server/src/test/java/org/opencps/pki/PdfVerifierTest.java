@@ -46,8 +46,6 @@ import com.itextpdf.text.pdf.security.PrivateKeySignature;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import sun.security.rsa.RSACore;
-import sun.security.rsa.RSAKeyFactory;
 
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
