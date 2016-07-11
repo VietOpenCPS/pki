@@ -16,6 +16,8 @@
 */
 package org.opencps.pki;
 
+import java.security.SignatureException;
+
 /**
  * Server signer interface
  *
@@ -39,10 +41,10 @@ public interface Signer {
     /**
      * Attach signature to document
      */
-    public Boolean sign(byte[] signature);
+    public Boolean sign(byte[] signature) throws SignatureException;
 
     /**
      * Attach signature to document
      */
-    public Boolean sign(byte[] signature, String filePath);
+    public Boolean sign(byte[] signature, String filePath) throws SignatureException;
 }

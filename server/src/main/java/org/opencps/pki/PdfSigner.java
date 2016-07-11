@@ -21,8 +21,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Calendar;
 
 import javax.imageio.ImageIO;
@@ -176,8 +178,10 @@ public class PdfSigner extends BaseSigner {
             }
 
             appearance.setSignDate(signDate);
-            appearance.setLocation("OpenCPS PKI");
-            appearance.setContact("OpenCPS PKI");
+            CertificateInfo certInfo = new CertificateInfo(cert);
+            appearance.setLocation(certInfo.getOrganizationUnit());
+            appearance.setReason("Document is signed by " + certInfo.getCommonName());
+            appearance.setContact(certInfo.getCommonName());
             if (!isVisible) {
                 appearance.setVisibleSignature(new Rectangle(0, 0, 0, 0), 1, signatureFieldName);
             }
@@ -187,10 +191,7 @@ public class PdfSigner extends BaseSigner {
                     appearance.setRenderingMode(PdfSignatureAppearance.RenderingMode.GRAPHIC);
                 }
                 else {
-                    if (cert != null) {
-                        CertificateInfo certInfo = new CertificateInfo(cert);
-                        appearance.setLayer2Text(certInfo.getCommonName());
-                    }
+                    appearance.setLayer2Text(certInfo.getCommonName());
                 }
                 appearance.setVisibleSignature(new Rectangle(llx, lly, urx, ury), 1, signatureFieldName);
             }
@@ -212,21 +213,28 @@ public class PdfSigner extends BaseSigner {
 
     /**
      * (non-Javadoc)
+     * @throws SignatureException 
      * @see org.opencps.pki.Signer#sign()
      */
     @Override
-    public Boolean sign(byte[] signature) {
+    public Boolean sign(byte[] signature) throws SignatureException {
         return sign(signature, tempFilePath);
     }
 
     /**
      * (non-Javadoc)
+     * @throws SignatureException 
      * @see org.opencps.pki.Signer#sign()
      */
     @Override
-    public Boolean sign(byte[] signature, String filePath) {
+    public Boolean sign(byte[] signature, String filePath) throws SignatureException {
         if (signatureFieldName == null || signatureFieldName.length() == 0) {
-            throw new RuntimeException("You must set signature field name before sign the document");
+            throw new SignatureException("You must set signature field name before sign the document");
+        }
+        RSAPublicKey rsaKey = (RSAPublicKey) cert.getPublicKey();
+        Integer keyLength = rsaKey.getModulus().bitLength() / 8;
+        if (keyLength != signature.length) {
+            throw new SignatureException("Signature length not correct");
         }
         Boolean signed = false;
         try {
@@ -240,7 +248,7 @@ public class PdfSigner extends BaseSigner {
                 signed = true;
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SignatureException(e);
         }
         return signed;
     }
