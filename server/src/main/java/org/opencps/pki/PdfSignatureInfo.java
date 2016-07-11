@@ -16,35 +16,41 @@
 */
 package org.opencps.pki;
 
-import java.security.SignatureException;
+import java.security.GeneralSecurityException;
+
+import com.itextpdf.text.pdf.security.PdfPKCS7;
 
 /**
- * Server signer interface
- *
- * This interface class defines the standard functions that any
- * server signer needs to define.
+ * Signature information of pdf document
  *
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public interface Signer {
+public class PdfSignatureInfo extends SignatureInfo {
+
+    private PdfPKCS7 pkcs7;
+
+	/**
+	 * Constructor
+	 */
+	public PdfSignatureInfo(PdfPKCS7 pkcs7) {
+        this.pkcs7 = pkcs7;
+        certInfo = new CertificateInfo(pkcs7.getSigningCertificate());
+        signDate = pkcs7.getSignDate();
+        timeStamp = pkcs7.getTimeStampDate();
+    }
 
     /**
-     * Compute hash key
+     * Get Pdf PKCS#7
      */
-    public byte[] computeHash();
-    
-    /**
-     * Get hash algorithm
-     */
-    public HashAlgorithm getHashAlgorithm();
-    
-    /**
-     * Attach signature to document
-     */
-    public Boolean sign(byte[] signature) throws SignatureException;
+    public PdfPKCS7 getPdfPKCS7() {
+        return pkcs7;
+    }
 
     /**
-     * Attach signature to document
+     * Check signature is verified
      */
-    public Boolean sign(byte[] signature, String filePath) throws SignatureException;
+	@Override
+	public Boolean isVerify() throws GeneralSecurityException {
+		return pkcs7.verify();
+	}
 }

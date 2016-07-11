@@ -17,6 +17,7 @@
 package org.opencps.pki;
 
 import java.security.KeyStore;
+import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -56,10 +57,10 @@ public interface Verifier {
     /**
      * Verify signature of document
      */
-    public Boolean verifySignature(String filePath);
+    public Boolean verifySignature(String filePath) throws SignatureException;
 
     /**
      * Verify signature of document
      */
-    public Boolean verifySignature(String filePath, KeyStore ks);
+    public Boolean verifySignature(String filePath, KeyStore ks) throws SignatureException;
 }

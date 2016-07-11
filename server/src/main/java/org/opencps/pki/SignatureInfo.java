@@ -28,36 +28,13 @@ import com.itextpdf.text.pdf.security.PdfPKCS7;
  *
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class SignatureInfo {
+abstract public class SignatureInfo {
 
-    private PdfPKCS7 pkcs7;
+	protected CertificateInfo certInfo;
 
-    private CertificateInfo certInfo;
+    protected Calendar signDate;
 
-    private Calendar signDate;
-
-    private Calendar timeStamp;
-
-    /**
-     * Constructor
-     * @throws CertificateEncodingException 
-     */
-    public SignatureInfo(PdfPKCS7 pkcs7) throws CertificateEncodingException {
-        this.pkcs7 = pkcs7;
-        X509Certificate cert = (X509Certificate) pkcs7.getSigningCertificate();
-        if (cert != null) {
-            certInfo = new CertificateInfo(cert);
-            signDate = pkcs7.getSignDate();
-            timeStamp = pkcs7.getTimeStampDate();
-        }
-    }
-
-    /**
-     * Get Pdf PKCS#7
-     */
-    public PdfPKCS7 getPdfPKCS7() {
-        return pkcs7;
-    }
+    protected Calendar timeStamp;
 
     /**
      * Get certificate information
@@ -83,8 +60,6 @@ public class SignatureInfo {
     /**
      * Check signature is verified
      */
-    public Boolean isVerify() throws GeneralSecurityException {
-        return pkcs7.verify();
-    }
+    abstract public Boolean isVerify() throws GeneralSecurityException;
 
 }

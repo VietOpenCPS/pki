@@ -16,7 +16,6 @@
 */
 package org.opencps.pki;
 
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
@@ -33,7 +32,7 @@ public class CertificateInfo {
      * Constructor
      * @throws CertificateEncodingException 
      */
-    public CertificateInfo(X509Certificate cert) throws CertificateEncodingException {
+    public CertificateInfo(X509Certificate cert) {
         this.cert = cert;
     }
 
