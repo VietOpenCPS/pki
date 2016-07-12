@@ -37,7 +37,9 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
 import com.itextpdf.text.pdf.AcroFields;
+import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.text.pdf.security.PdfPKCS7;
 import com.itextpdf.text.pdf.security.PrivateKeySignature;
 
@@ -92,7 +94,6 @@ public class PdfVerifierTest extends TestCase {
         pemReader.close();
         
         PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
-        
         byte[] extSignature = signature.sign(hash);
         signer.sign(extSignature);
     }
@@ -111,40 +112,9 @@ public class PdfVerifierTest extends TestCase {
         assertFalse(verifier.verifySignature(signer.getSignedFilePath()));
     }
     
-    public void testGetSignatureInfo() {
+    public void testGetSignatureInfo() throws IOException, GeneralSecurityException {
         List<SignatureInfo> infors = verifier.getSignatureInfo(signer.getSignedFilePath());
         SignatureInfo infor = infors.size() > 0 ? infors.get(0) : null;
         assertEquals("OpenCPS PKI", infor.getCertificateInfo().getCommonName());
     }
-
-//    public void testBycSignature() throws IOException, GeneralSecurityException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-//        String signedPath = "./src/test/java/resources/signed.pdf";
-//        List<SignatureInfo> infors = verifier.getSignatureInfo(signedPath);
-//        SignatureInfo infor = infors.size() > 0 ? infors.get(0) : null;
-//        if (infor != null) {
-//            System.out.println(infor.getCertificateInfo().getCommonName());
-//            System.out.println(infor.getCertificateInfo().getOrganizationUnit());
-//            System.out.println(infor.getCertificateInfo().getOrganization());
-//            RSAPublicKey rsaKey = (RSAPublicKey) infor.getCertificateInfo().getCertificate().getPublicKey();
-//            System.out.println("Public key length: " + rsaKey.getModulus().bitLength() / 8);
-//        }
-//
-//        PdfReader reader = new PdfReader(signedPath);
-//        AcroFields fields = reader.getAcroFields();
-//        ArrayList<String> names = fields.getSignatureNames();
-//        for (String name : names) {
-//            PdfPKCS7 pkcs7 = fields.verifySignature(name);
-//            System.out.println("Digest algorithm: " + pkcs7.getDigestAlgorithm());
-//            System.out.println("Hash algorithm: " + pkcs7.getHashAlgorithm());
-//            //Field sigAttrField = PdfPKCS7.class.getDeclaredField("sigAttr");
-//            Field sigAttrField = PdfPKCS7.class.getDeclaredField("digest");
-//            sigAttrField.setAccessible(true);
-//            byte[] digestAttr = (byte[]) sigAttrField.get(pkcs7);
-//            System.out.printf("Signature: %s\n", Helper.binToHex(digestAttr));
-//            System.out.println("Byte length: " + digestAttr.length);
-//            
-//            assertTrue(pkcs7.verify());
-//        }
-//    }
-
 }
