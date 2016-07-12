@@ -35,7 +35,7 @@ public class CertificateInfoTest extends TestCase {
 
     private static final String certPath = "./src/test/java/resources/cert.pem";
     private CertificateInfo certInfo;
-    X509Certificate cert;
+    private X509Certificate cert;
     
     /**
      * Create the test case

@@ -145,27 +145,11 @@ public class PdfSignerTest extends TestCase {
         }
     }
     
-    public void testSignatureLengthInvalid() {
-        try {
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(certPath)));
-            PdfSigner signer = new PdfSigner(pdfPath, cert);
-            signer.setSignatureFieldName("Signature1");
-            signer.sign(new byte[0]);
-
-            fail("Missing exception");
-        }
-        catch (Exception ex) {
-            assertEquals("Signature length not correct", ex.getMessage());
-        }
-    }
-    
     public void testSign() throws IOException, OperatorCreationException, PKCSException, GeneralSecurityException, DocumentException {
         signer.setSignatureGraphic(signImagePath);
         byte[] hash = signer.computeHash();
         assertTrue(hash.length > 0);
 
-        Security.addProvider(new BouncyCastleProvider());
         PemReader pemReader = new PemReader(new InputStreamReader(new FileInputStream(keyPath)));
         PemObject pemObject = pemReader.readPemObject();
         PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(pemObject.getContent());

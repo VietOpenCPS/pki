@@ -37,7 +37,9 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
 import com.itextpdf.text.pdf.AcroFields;
+import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.text.pdf.security.PdfPKCS7;
 import com.itextpdf.text.pdf.security.PrivateKeySignature;
 
@@ -92,7 +94,6 @@ public class PdfVerifierTest extends TestCase {
         pemReader.close();
         
         PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
-        
         byte[] extSignature = signature.sign(hash);
         signer.sign(extSignature);
     }
@@ -111,10 +112,9 @@ public class PdfVerifierTest extends TestCase {
         assertFalse(verifier.verifySignature(signer.getSignedFilePath()));
     }
     
-    public void testGetSignatureInfo() {
+    public void testGetSignatureInfo() throws IOException, GeneralSecurityException {
         List<SignatureInfo> infors = verifier.getSignatureInfo(signer.getSignedFilePath());
         SignatureInfo infor = infors.size() > 0 ? infors.get(0) : null;
         assertEquals("OpenCPS PKI", infor.getCertificateInfo().getCommonName());
     }
-
 }

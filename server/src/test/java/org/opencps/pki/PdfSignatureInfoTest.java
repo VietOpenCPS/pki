@@ -16,45 +16,44 @@
 */
 package org.opencps.pki;
 
-import java.security.Security;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+
+import com.itextpdf.text.pdf.security.PdfPKCS7;
 
 /**
- * Base abstract class for singer
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public abstract class BaseSigner implements Signer {
+public class PdfSignatureInfoTest extends TestCase {
+
+    private PdfSignatureInfo signInfo;
+
+    /**
+     * Create the test case
+     */
+    public PdfSignatureInfoTest(String testName) {
+        super(testName);
+    }
+
+    /**
+     * @return the suite of tests being tested
+     */
+    public static Test suite()
+    {
+        return new TestSuite(PdfSignatureInfoTest.class);
+    }
     
-    /**
-     * Hash algorithm
-     */
-    private HashAlgorithm hashAlgorithm;
-
-    /**
-     * Constructor
-     */
-    public BaseSigner() {
-        Security.addProvider(new BouncyCastleProvider());
-        hashAlgorithm = HashAlgorithm.SHA256;
+    public void testGetPdfPKCS7() {
+        assertTrue(signInfo.getPdfPKCS7() instanceof PdfPKCS7);
     }
-
-    /**
-     * (non-Javadoc)
-     * @see org.opencps.pki.Signer#getHashAlgorithm()
-     */
-    @Override
-    public HashAlgorithm getHashAlgorithm() {
-        return hashAlgorithm;
+    
+    protected void setUp() {
+        PdfPKCS7 pkcs7 = mock(PdfPKCS7.class, CALLS_REAL_METHODS);
+        signInfo = new PdfSignatureInfo(pkcs7);
     }
-
-    /**
-     * Set hash algorithm
-     * @param hashAlgorithm
-     */
-    public BaseSigner setHashAlgorithm(HashAlgorithm hashAlgorithm) {
-        this.hashAlgorithm = hashAlgorithm;
-        return this;
-    }
-
+    
 }
