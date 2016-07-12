@@ -37,29 +37,29 @@ public class Pksc7SignatureContainer implements ExternalSignatureContainer {
 
     private PdfPkcs7Signer signer;
 
-	/**
-	 * Constructor
-	 */
-	public Pksc7SignatureContainer(PdfPkcs7Signer signer, byte[] encodedPkcs7) {
+    /**
+     * Constructor
+     */
+    public Pksc7SignatureContainer(PdfPkcs7Signer signer, byte[] encodedPkcs7) {
         this.signer = signer;
-		this.encodedPkcs7 = encodedPkcs7;
-	}
+        this.encodedPkcs7 = encodedPkcs7;
+    }
 
-	@Override
-	public void modifySigningDictionary(PdfDictionary pd) {
-	}
+    @Override
+    public void modifySigningDictionary(PdfDictionary pd) {
+    }
 
-	@Override
-	public byte[] sign(InputStream is) throws GeneralSecurityException {
+    @Override
+    public byte[] sign(InputStream is) throws GeneralSecurityException {
         X509Certificate cert = signer.getCertificate();
         PdfPKCS7 sgn = new PdfPKCS7(encodedPkcs7, PdfName.ADBE_PKCS7_DETACHED, null);
         X509Certificate signingCert = sgn.getSigningCertificate();
 
         if (!signingCert.getSerialNumber().equals(cert.getSerialNumber())) {
-        	throw new SignatureException("Encoded pkcs7 is invalid");
+            throw new SignatureException("Encoded pkcs7 is invalid");
         }
 
         return encodedPkcs7;
-	}
+    }
 
 }
