@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -35,6 +36,14 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
+import com.itextpdf.text.io.RASInputStream;
+import com.itextpdf.text.io.RandomAccessSource;
+import com.itextpdf.text.io.RandomAccessSourceFactory;
+import com.itextpdf.text.pdf.AcroFields;
+import com.itextpdf.text.pdf.PdfArray;
+import com.itextpdf.text.pdf.PdfDictionary;
+import com.itextpdf.text.pdf.PdfName;
+import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
 import com.itextpdf.text.pdf.security.PrivateKeySignature;
 
@@ -75,8 +84,41 @@ public class ClientSignatureContainerTest extends TestCase {
         PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
         byte[] extSignature = signature.sign(signer.computeHash());
 
+        PdfReader reader = new PdfReader(signer.getTempFilePath());
+        AcroFields af = reader.getAcroFields();
+        PdfDictionary v = af.getSignatureDictionary(signer.getSignatureFieldName());
+        PdfArray b = v.getAsArray(PdfName.BYTERANGE);
+        long[] gaps = b.asLongArray();
+
+        RandomAccessSource readerSource = reader.getSafeFile().createSourceView();
+        @SuppressWarnings("resource")
+		InputStream rg = new RASInputStream(new RandomAccessSourceFactory().createRanged(readerSource, gaps));
+
         ExternalSignatureContainer container = new ClientSignatureContainer(signer, extSignature);
-        assertTrue(container.sign(mock(InputStream.class)).length > 0);
+        assertTrue(container.sign(rg).length > 0);
+    }
+    
+    public void testSignatureContainerWithInvalidSignature() throws IOException, SignatureException, GeneralSecurityException {
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(certPath)));
+        PdfSigner signer = new PdfSigner(pdfPath, cert);
+
+        PemReader pemReader = new PemReader(new InputStreamReader(new FileInputStream(keyPath)));
+        PemObject pemObject = pemReader.readPemObject();
+        PKCS8EncodedKeySpec privKeySpec = new PKCS8EncodedKeySpec(pemObject.getContent());
+        KeyFactory factory = KeyFactory.getInstance("RSA", "BC");
+        PrivateKey privateKey = factory.generatePrivate(privKeySpec);
+        pemReader.close();
+        PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
+        byte[] extSignature = signature.sign(signer.computeHash());
+        ExternalSignatureContainer container = new ClientSignatureContainer(signer, extSignature);
+        try {
+            container.sign(mock(InputStream.class));
+            fail("Missing exception");
+        }
+        catch (Exception ex) {
+            assertEquals("Signature is not correct", ex.getMessage());
+        }
     }
     
     public void testSignatureContainerWithEmptySignature() throws CertificateException, FileNotFoundException {
