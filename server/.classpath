@@ -9,7 +9,4 @@
   <classpathentry kind="var" path="M2_REPO/com/itextpdf/itextpdf/5.5.9/itextpdf-5.5.9.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/bouncycastle/bcpkix-jdk15on/1.54/bcpkix-jdk15on-1.54.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/bouncycastle/bcprov-jdk15on/1.54/bcprov-jdk15on-1.54.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-jcl/1.7.21/slf4j-jcl-1.7.21.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.7.21/slf4j-api-1.7.21.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar" sourcepath="M2_REPO/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1-sources.jar"/>
 </classpath>
