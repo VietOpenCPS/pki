@@ -17,6 +17,7 @@
 package org.opencps.pki;
 
 import java.security.GeneralSecurityException;
+import java.security.cert.X509Certificate;
 import java.util.Calendar;
 
 /**
@@ -26,11 +27,24 @@ import java.util.Calendar;
  */
 abstract public class SignatureInfo {
 
-	protected CertificateInfo certInfo;
+    protected X509Certificate cert;
+
+    protected CertificateInfo certInfo;
 
     protected Calendar signDate;
 
     protected Calendar timeStamp;
+
+    protected String digestAlgorithm;
+
+    protected String hashAlgorithm;
+
+    /**
+     * Get signing certificate
+     */
+    public X509Certificate getCertificate() {
+        return cert;
+    }
 
     /**
      * Get certificate information
@@ -51,6 +65,20 @@ abstract public class SignatureInfo {
      */
     public Calendar getTimeStamp() {
         return timeStamp;
+    }
+    
+    /**
+     * Get digest algorithm
+     */
+    public String getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+    
+    /**
+     * Get hash algorithm
+     */
+    public String getHashAlgorithm() {
+        return hashAlgorithm;
     }
 
     /**
