@@ -16,6 +16,10 @@
 */
 package org.opencps.pki;
 
+import java.security.Security;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 /**
  * Base abstract class for singer
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
@@ -31,6 +35,7 @@ public abstract class BaseSigner implements Signer {
      * Constructor
      */
     public BaseSigner() {
+        Security.addProvider(new BouncyCastleProvider());
         hashAlgorithm = HashAlgorithm.SHA256;
     }
 
