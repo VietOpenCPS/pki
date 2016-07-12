@@ -72,7 +72,7 @@ public class Pksc7SignatureContainerTest extends TestCase {
         try {
             container.sign(mock(InputStream.class));
     	} catch (Exception ex) {
-    		assertEquals("Encoded pkcs7 is invalid", ex.getMessage());
+    		assertEquals("Encoded pkcs7 is invalid. The certificate from signer not equal pkcs7's certificate", ex.getMessage());
         }
     }
 
