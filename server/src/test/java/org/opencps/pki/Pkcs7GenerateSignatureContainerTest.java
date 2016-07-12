@@ -54,12 +54,12 @@ import junit.framework.TestSuite;
 /**
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class ClientSignatureContainerTest extends TestCase {
+public class Pkcs7GenerateSignatureContainerTest extends TestCase {
     private static final String certPath = "./src/test/java/resources/cert.pem";
     private static final String keyPath = "./src/test/java/resources/key.pem";
     private static final String pdfPath = "./src/test/java/resources/opencps.pdf";
 
-    public ClientSignatureContainerTest(String testName) {
+    public Pkcs7GenerateSignatureContainerTest(String testName) {
         super(testName);
     }
 
@@ -67,7 +67,7 @@ public class ClientSignatureContainerTest extends TestCase {
      * @return the suite of tests being tested
      */
     public static Test suite() {
-        return new TestSuite(ClientSignatureContainerTest.class);
+        return new TestSuite(Pkcs7GenerateSignatureContainerTest.class);
     }
     
     public void testSignatureContainer() throws GeneralSecurityException, IOException {
@@ -94,7 +94,7 @@ public class ClientSignatureContainerTest extends TestCase {
         @SuppressWarnings("resource")
 		InputStream rg = new RASInputStream(new RandomAccessSourceFactory().createRanged(readerSource, gaps));
 
-        ExternalSignatureContainer container = new ClientSignatureContainer(signer, extSignature);
+        ExternalSignatureContainer container = new Pkcs7GenerateSignatureContainer(signer, extSignature);
         assertTrue(container.sign(rg).length > 0);
     }
     
@@ -111,7 +111,7 @@ public class ClientSignatureContainerTest extends TestCase {
         pemReader.close();
         PrivateKeySignature signature = new PrivateKeySignature(privateKey, signer.getHashAlgorithm().toString(), "BC");
         byte[] extSignature = signature.sign(signer.computeHash());
-        ExternalSignatureContainer container = new ClientSignatureContainer(signer, extSignature);
+        ExternalSignatureContainer container = new Pkcs7GenerateSignatureContainer(signer, extSignature);
         try {
             container.sign(mock(InputStream.class));
             fail("Missing exception");
@@ -125,7 +125,7 @@ public class ClientSignatureContainerTest extends TestCase {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         X509Certificate cert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(certPath)));
         PdfSigner signer = new PdfSigner(pdfPath, cert);
-        ExternalSignatureContainer container = new ClientSignatureContainer(signer, new byte[0]);
+        ExternalSignatureContainer container = new Pkcs7GenerateSignatureContainer(signer, new byte[0]);
         try {
             container.sign(mock(InputStream.class));
             fail("Missing exception");

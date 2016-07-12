@@ -52,7 +52,7 @@ public class Pksc7SignatureContainerTest extends TestCase {
      * @return the suite of tests being tested
      */
     public static Test suite() {
-        return new TestSuite(ClientSignatureContainerTest.class);
+        return new TestSuite(Pkcs7GenerateSignatureContainerTest.class);
     }
     
     public void testSignatureContainer() throws FileNotFoundException, GeneralSecurityException {

@@ -41,7 +41,7 @@ import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
  * 
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class ClientSignatureContainer implements ExternalSignatureContainer {
+public class Pkcs7GenerateSignatureContainer implements ExternalSignatureContainer {
 
     private byte[] signature;
     
@@ -50,7 +50,7 @@ public class ClientSignatureContainer implements ExternalSignatureContainer {
     /**
      * Constructor
      */
-    public ClientSignatureContainer(PdfSigner signer, byte[] signature) {
+    public Pkcs7GenerateSignatureContainer(PdfSigner signer, byte[] signature) {
         this.signer = signer;
         this.signature = signature;
     }
