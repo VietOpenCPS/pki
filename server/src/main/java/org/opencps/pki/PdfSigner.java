@@ -29,16 +29,12 @@ import java.util.Calendar;
 
 import javax.imageio.ImageIO;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSignatureAppearance;
 import com.itextpdf.text.pdf.PdfStamper;
-import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.text.pdf.security.BouncyCastleDigest;
 import com.itextpdf.text.pdf.security.CertificateUtil;
 import com.itextpdf.text.pdf.security.DigestAlgorithms;
@@ -57,8 +53,6 @@ import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class PdfSigner extends BaseSigner {
-	
-	private final Logger logger = LoggerFactory.getLogger(PdfSigner.class);
 
     /**
      * X509 certificate
@@ -209,15 +203,9 @@ public class PdfSigner extends BaseSigner {
             
             ExternalDigest digest = new BouncyCastleDigest();
             byte[] digestHash = DigestAlgorithms.digest(appearance.getRangeStream(), digest.getMessageDigest(getHashAlgorithm().toString()));
-            if (logger.isDebugEnabled()) {
-                logger.debug("Digest hash value: " + Base64.encodeBytes(digestHash));
-            }
 
             PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, getHashAlgorithm().toString(), null, digest, false);
             hash = sgn.getAuthenticatedAttributeBytes(digestHash, null, null, CryptoStandard.CMS);
-            if (logger.isDebugEnabled()) {
-                logger.debug("Authenticated attribute value: " + Base64.encodeBytes(digestHash));
-            }
 
             reader.close();
             os.close();
@@ -251,9 +239,6 @@ public class PdfSigner extends BaseSigner {
         Integer keyLength = rsaKey.getModulus().bitLength() / 8;
         if (keyLength != signature.length) {
             throw new SignatureException("Signature length not correct");
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Signature value: " + Base64.encodeBytes(signature));
         }
         Boolean signed = false;
         try {

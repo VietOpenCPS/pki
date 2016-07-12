@@ -32,8 +32,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
@@ -49,8 +47,6 @@ import com.itextpdf.text.pdf.security.VerificationOK;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class PdfVerifier extends BaseVerifier {
-
-	private final Logger logger = LoggerFactory.getLogger(PdfSigner.class);
 
     /**
      * Constructor
@@ -122,9 +118,6 @@ public class PdfVerifier extends BaseVerifier {
      */
     @Override
     public Boolean verifySignature(String filePath, KeyStore ks) throws SignatureException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Verify signature file: " + filePath);
-        }
         Boolean verified = false;
         try {
             InputStream is = new FileInputStream(filePath);
@@ -148,14 +141,8 @@ public class PdfVerifier extends BaseVerifier {
             AcroFields fields = reader.getAcroFields();
             ArrayList<String> names = fields.getSignatureNames();
             for (String name : names) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Verify signature field name: " + name);
-                }
                 PdfPKCS7 pkcs7 = fields.verifySignature(name);
                 if (pkcs7.verify()) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Signature of " + name + " is verify");
-                    }
                     Certificate[] certs = pkcs7.getSignCertificateChain();
                     Calendar cal = pkcs7.getSignDate();
                     List<VerificationException> errors = CertificateVerification.verifyCertificates(certs, ks, cal);
@@ -177,9 +164,6 @@ public class PdfVerifier extends BaseVerifier {
      * Check signature revocation
      */
     protected Boolean checkSignatureRevocation(PdfPKCS7 pkcs7, X509Certificate signCert, X509Certificate issuerCert, Date date) throws GeneralSecurityException, IOException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Check signature revocation for: " + signCert.getSubjectDN().getName());
-        }
         List<BasicOCSPResp> ocsps = new ArrayList<BasicOCSPResp>();
         if (pkcs7.getOcsp() != null) {
             ocsps.add(pkcs7.getOcsp());
