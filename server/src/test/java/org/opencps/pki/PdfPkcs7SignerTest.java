@@ -43,7 +43,7 @@ import junit.framework.TestSuite;
  */
 public class PdfPkcs7SignerTest extends TestCase {
 
-	private static final String certPath = "./src/test/java/resources/cert.pem";
+    private static final String certPath = "./src/test/java/resources/cert.pem";
     private static final String keyPath = "./src/test/java/resources/key.pem";
     private static final String pdfPath = "./src/test/java/resources/opencps.pdf";
     private static final String signImagePath = "./src/test/java/resources/signature.png";
@@ -54,12 +54,12 @@ public class PdfPkcs7SignerTest extends TestCase {
     CertificateFactory cf;
     PdfPkcs7Signer signer;
 
-	/**
-	 * Create the test case
-	 */
-	public PdfPkcs7SignerTest(String testName) {
-		super(testName);
-	}
+    /**
+     * Create the test case
+     */
+    public PdfPkcs7SignerTest(String testName) {
+        super(testName);
+    }
 
     /**
      * @return the suite of tests being tested
@@ -77,7 +77,7 @@ public class PdfPkcs7SignerTest extends TestCase {
     
     public void testSignGenEncodedPKCS7() throws SignatureException, IOException, GeneralSecurityException {
         signer.setSignatureGraphic(signImagePath);
-    	byte[] signature = genEncodedPKCS7(signer.computeHash());
+        byte[] signature = genEncodedPKCS7(signer.computeHash());
         assertTrue(signer.sign(signature));
 
         PdfReader reader = new PdfReader(signer.getSignedFilePath());
@@ -92,13 +92,13 @@ public class PdfPkcs7SignerTest extends TestCase {
     }
     
     public void testSignWithInvalidEncodedPKCS7() {
-    	try {
+        try {
             signer.setSignatureGraphic(signImagePath);
             signer.setSignatureFieldName("Signature1");
             signer.sign(Base64.decode(encodedPkcs7));
             fail("Missing exception");
-    	} catch (Exception ex) {
-    		assertEquals("Encoded pkcs7 is invalid", ex.getMessage());
+        } catch (Exception ex) {
+            assertEquals("Encoded pkcs7 is invalid. The certificate from signer not equal pkcs7's certificate", ex.getMessage());
         }
     }
 

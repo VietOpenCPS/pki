@@ -19,6 +19,7 @@ package org.opencps.pki;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
+import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
@@ -40,18 +41,18 @@ import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
  * 
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class ClientSignatureContainer implements ExternalSignatureContainer {
+public class Pkcs7GenerateSignatureContainer implements ExternalSignatureContainer {
 
-    private byte[] signedData;
+    private byte[] signature;
     
     private PdfSigner signer;
 
     /**
      * Constructor
      */
-    public ClientSignatureContainer(PdfSigner signer, byte[] signedData) {
+    public Pkcs7GenerateSignatureContainer(PdfSigner signer, byte[] signature) {
         this.signer = signer;
-        this.signedData = signedData;
+        this.signature = signature;
     }
 
     @Override
@@ -64,19 +65,26 @@ public class ClientSignatureContainer implements ExternalSignatureContainer {
         RSAPublicKey rsaKey = (RSAPublicKey) cert.getPublicKey();
         Integer keyLength = rsaKey.getModulus().bitLength() / 8;
 
-        if (keyLength != signedData.length) {
-        	throw new SignatureException("Signature length not correct");
+        if (keyLength != signature.length) {
+            throw new SignatureException("Signature length not correct");
         }
         
         ExternalDigest digest = signer.getExternalDigest();
-        PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, signer.getHashAlgorithm().toString(), null, digest, false);
-        sgn.setExternalDigest(signedData, null, cert.getPublicKey().getAlgorithm());
 
-        byte[] hash = null;
+        byte[] digestHash = null;
         try {
-            hash = DigestAlgorithms.digest(is, digest.getMessageDigest(signer.getHashAlgorithm().toString()));
+            digestHash = DigestAlgorithms.digest(is, digest.getMessageDigest(signer.getHashAlgorithm().toString()));
         } catch (IOException e) {
-            throw new SignatureException(e);
+            throw new SignatureException(e.getMessage());
+        }
+
+        PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, signer.getHashAlgorithm().toString(), null, digest, false);
+        byte[] sh = sgn.getAuthenticatedAttributeBytes(digestHash, null, null, CryptoStandard.CMS);
+        Signature sig = Signature.getInstance(signer.getHashAlgorithm().toString() + "with" + cert.getPublicKey().getAlgorithm());
+        sig.initVerify(cert.getPublicKey());
+        sig.update(sh);
+        if (!sig.verify(signature)) {
+            throw new SignatureException("Signature is not correct");
         }
 
         TSAClient tsaClient = null;
@@ -85,7 +93,8 @@ public class ClientSignatureContainer implements ExternalSignatureContainer {
             tsaClient = new TSAClientBouncyCastle(tsaUrl);
         }
         
-        return sgn.getEncodedPKCS7(hash, tsaClient, null, null, CryptoStandard.CMS);
+        sgn.setExternalDigest(signature, null, cert.getPublicKey().getAlgorithm());
+        return sgn.getEncodedPKCS7(digestHash, tsaClient, null, null, CryptoStandard.CMS);
     }
 
 }

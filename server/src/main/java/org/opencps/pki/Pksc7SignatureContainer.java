@@ -56,7 +56,7 @@ public class Pksc7SignatureContainer implements ExternalSignatureContainer {
         X509Certificate signingCert = sgn.getSigningCertificate();
 
         if (!signingCert.getSerialNumber().equals(cert.getSerialNumber())) {
-            throw new SignatureException("Encoded pkcs7 is invalid");
+            throw new SignatureException("Encoded pkcs7 is invalid. The certificate from signer not equal pkcs7's certificate");
         }
 
         return encodedPkcs7;

@@ -189,7 +189,7 @@ public class PdfSigner extends BaseSigner {
      */
     @Override
     public Boolean sign(byte[] signature, String filePath) throws SignatureException {
-        ExternalSignatureContainer container = new ClientSignatureContainer(this, signature);
+        ExternalSignatureContainer container = new Pkcs7GenerateSignatureContainer(this, signature);
         return signExternal(container, filePath);
     }
 
