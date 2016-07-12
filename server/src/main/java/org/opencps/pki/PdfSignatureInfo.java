@@ -34,9 +34,12 @@ public class PdfSignatureInfo extends SignatureInfo {
 	 */
 	public PdfSignatureInfo(PdfPKCS7 pkcs7) {
         this.pkcs7 = pkcs7;
-        certInfo = new CertificateInfo(pkcs7.getSigningCertificate());
+        cert = pkcs7.getSigningCertificate();
+        certInfo = new CertificateInfo(cert);
         signDate = pkcs7.getSignDate();
         timeStamp = pkcs7.getTimeStampDate();
+        digestAlgorithm = pkcs7.getDigestAlgorithm();
+        hashAlgorithm = pkcs7.getHashAlgorithm();
     }
 
     /**
