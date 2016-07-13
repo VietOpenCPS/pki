@@ -17,6 +17,7 @@
 package org.opencps.pki;
 
 import java.security.Security;
+import java.security.cert.X509Certificate;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -25,18 +26,42 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public abstract class BaseSigner implements Signer {
+
+    /**
+     * X509 certificate
+     */
+    private X509Certificate cert;
     
     /**
      * Hash algorithm
      */
     private HashAlgorithm hashAlgorithm;
+    
+    /**
+     * Origin Pdf document file path
+     */
+    private String originFilePath;
+    
+    /**
+     * Temporary Pdf document file path after generate hash key
+     */
+    private String tempFilePath;
+
+    /**
+     * Signed Pdf document file path
+     */
+    private String signedFilePath;
 
     /**
      * Constructor
      */
-    public BaseSigner() {
+    public BaseSigner(String filePath, X509Certificate cert, String tempFilePath, String signedFilePath) {
         Security.addProvider(new BouncyCastleProvider());
-        hashAlgorithm = HashAlgorithm.SHA256;
+        hashAlgorithm = HashAlgorithm.SHA1;
+        this.originFilePath = filePath;
+        this.cert = cert;
+        this.tempFilePath = tempFilePath;
+        this.signedFilePath = signedFilePath;
     }
 
     /**
@@ -55,6 +80,34 @@ public abstract class BaseSigner implements Signer {
     public BaseSigner setHashAlgorithm(HashAlgorithm hashAlgorithm) {
         this.hashAlgorithm = hashAlgorithm;
         return this;
+    }
+
+    /**
+     * Get certificate 
+     */
+    public X509Certificate getCertificate() {
+        return cert;
+    }
+
+    /**
+     * Get origin file path of pdf document
+     */
+    public String getOriginFilePath() {
+        return originFilePath;
+    }
+
+    /**
+     * Get temporary file path of pdf document
+     */
+    public String getTempFilePath() {
+        return tempFilePath;
+    }
+
+    /**
+     * Get file path of signed pdf document
+     */
+    public String getSignedFilePath() {
+        return signedFilePath;
     }
 
 }
