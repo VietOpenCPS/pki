@@ -97,12 +97,14 @@ public class SignatureInfoTest extends TestCase {
     public class MockSignatureInfo extends SignatureInfo {
 
         public MockSignatureInfo(X509Certificate cert) {
-            this.cert = cert;
-            certInfo = new CertificateInfo(cert);
-            signDate = Calendar.getInstance();
-            timeStamp = Calendar.getInstance();
-            digestAlgorithm = "RSA";
-            hashAlgorithm = "SHA1";
+            super(
+                cert,
+                new CertificateInfo(cert),
+                Calendar.getInstance(),
+                Calendar.getInstance(),
+                "RSA",
+                "SHA1"
+            );
         }
 
         @Override

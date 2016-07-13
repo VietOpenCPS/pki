@@ -27,18 +27,37 @@ import java.util.Calendar;
  */
 abstract public class SignatureInfo {
 
-    protected X509Certificate cert;
+    private X509Certificate cert;
 
-    protected CertificateInfo certInfo;
+    private CertificateInfo certInfo;
 
-    protected Calendar signDate;
+    private Calendar signDate;
 
-    protected Calendar timeStamp;
+    private Calendar timeStamp;
 
-    protected String digestAlgorithm;
+    private String digestAlgorithm;
 
-    protected String hashAlgorithm;
+    private String hashAlgorithm;
 
+    /**
+     * Constructor
+     */
+    public SignatureInfo(
+        X509Certificate cert,
+        CertificateInfo certInfo,
+        Calendar signDate,
+        Calendar timeStamp,
+        String digestAlgorithm,
+        String hashAlgorithm)
+    {
+        this.cert = cert;
+        this.certInfo = certInfo;
+        this.signDate = signDate;
+        this.timeStamp = timeStamp;
+        this.digestAlgorithm = digestAlgorithm;
+        this.hashAlgorithm = hashAlgorithm;
+    }
+    
     /**
      * Get signing certificate
      */
