@@ -55,11 +55,6 @@ import com.itextpdf.text.pdf.security.TSAClientBouncyCastle;
 public class PdfSigner extends BaseSigner {
 
     /**
-     * X509 certificate
-     */
-    private X509Certificate cert;
-
-    /**
      * Signature image
      */
     private SignatureImage signatureImage;
@@ -68,21 +63,6 @@ public class PdfSigner extends BaseSigner {
      * signature field name
      */
     private String signatureFieldName;
-    
-    /**
-     * Origin Pdf document file path
-     */
-    private String originFilePath;
-    
-    /**
-     * Temporary Pdf document file path after generate hash key
-     */
-    private String tempFilePath;
-
-    /**
-     * Signed Pdf document file path
-     */
-    private String signedFilePath;
     
     /**
      * Sign date
@@ -94,6 +74,9 @@ public class PdfSigner extends BaseSigner {
      */
     private Boolean isVisible;
     
+    /**
+     * External digest
+     */
     private ExternalDigest digest;
 
     /**
@@ -103,14 +86,13 @@ public class PdfSigner extends BaseSigner {
      * @param cert The certificate of user
      */
     public PdfSigner(String filePath, X509Certificate cert) {
-        super();
-        originFilePath = filePath;
-        tempFilePath = Helper.stripFileExtension(filePath) + ".temp.pdf";
-        signedFilePath = Helper.stripFileExtension(filePath) + ".signed.pdf";
-        isVisible = true;
-        signDate = Calendar.getInstance();
-        digest = new BouncyCastleDigest();
-        this.cert= cert;
+        this(
+            filePath,
+            cert,
+            Helper.stripFileExtension(filePath) + ".temp.pdf",
+            Helper.stripFileExtension(filePath) + ".signed.pdf",
+            true
+        );
     }
 
     /**
@@ -123,14 +105,10 @@ public class PdfSigner extends BaseSigner {
      * @param isVisible Signature is visible
      */
     public PdfSigner(String filePath, X509Certificate cert, String tempFilePath, String signedFilePath, boolean isVisible) {
-        super();
-        originFilePath = filePath;
-        this.tempFilePath = tempFilePath;
-        this.signedFilePath = signedFilePath;
+        super(filePath, cert, tempFilePath, signedFilePath);
         this.isVisible = isVisible;
         signDate = Calendar.getInstance();
         digest = new BouncyCastleDigest();
-        this.cert= cert;
     }
 
     /**
@@ -166,7 +144,7 @@ public class PdfSigner extends BaseSigner {
     public byte[] computeHash(float llx, float lly, float urx, float ury) throws SignatureException {
         try {
             byte[] digestHash = computeDigest(llx, lly, urx, ury);
-            PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, getHashAlgorithm().toString(), null, digest, false);
+            PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { getCertificate() }, getHashAlgorithm().toString(), null, digest, false);
             return sgn.getAuthenticatedAttributeBytes(digestHash, null, null, CryptoStandard.CMS);
         } catch (Exception e) {
             throw new SignatureException(e.getMessage());
@@ -180,7 +158,7 @@ public class PdfSigner extends BaseSigner {
      */
     @Override
     public Boolean sign(byte[] signature) throws SignatureException {
-        return sign(signature, tempFilePath);
+        return sign(signature, getTempFilePath());
     }
 
     /**
@@ -191,13 +169,6 @@ public class PdfSigner extends BaseSigner {
     @Override
     public Boolean sign(byte[] signature, String filePath) throws SignatureException {
         return signExternal(new Pkcs7GenerateSignatureContainer(this, signature), filePath);
-    }
-
-    /**
-     * Get certificate 
-     */
-    public X509Certificate getCertificate() {
-        return cert;
     }
 
     /**
@@ -246,27 +217,6 @@ public class PdfSigner extends BaseSigner {
     }
 
     /**
-     * Get origin file path of pdf document
-     */
-    public String getOriginFilePath() {
-        return originFilePath;
-    }
-
-    /**
-     * Get temporary file path of pdf document
-     */
-    public String getTempFilePath() {
-        return tempFilePath;
-    }
-
-    /**
-     * Get file path of signed pdf document
-     */
-    public String getSignedFilePath() {
-        return signedFilePath;
-    }
-
-    /**
      * Get signature field name pdf document
      */
     public String getSignatureFieldName() {
@@ -292,14 +242,14 @@ public class PdfSigner extends BaseSigner {
         byte digestHash[] = null;
         int contentEstimated = 8192;
         try {
-            PdfReader reader = new PdfReader(this.originFilePath);
-            FileOutputStream os = new FileOutputStream(tempFilePath);
+            PdfReader reader = new PdfReader(getOriginFilePath());
+            FileOutputStream os = new FileOutputStream(getTempFilePath());
             PdfStamper stamper = PdfStamper.createSignature(reader, os, '\0');
             PdfSignatureAppearance appearance = stamper.getSignatureAppearance();
             signatureFieldName = appearance.getNewSigName();
             TSAClient tsaClient = null;
-            appearance.setCertificate(cert);
-            String tsaUrl = CertificateUtil.getTSAURL(cert);
+            appearance.setCertificate(getCertificate());
+            String tsaUrl = CertificateUtil.getTSAURL(getCertificate());
             if (tsaUrl != null) {
                 tsaClient = new TSAClientBouncyCastle(tsaUrl);
             }
@@ -309,7 +259,7 @@ public class PdfSigner extends BaseSigner {
             }
 
             appearance.setSignDate(signDate);
-            CertificateInfo certInfo = new CertificateInfo(cert);
+            CertificateInfo certInfo = new CertificateInfo(getCertificate());
             appearance.setLocation(certInfo.getOrganizationUnit());
             appearance.setReason("Document is signed by " + certInfo.getCommonName());
             appearance.setContact(certInfo.getCommonName());
@@ -349,7 +299,7 @@ public class PdfSigner extends BaseSigner {
         }
         Boolean signed = false;
         try {
-            OutputStream os = new FileOutputStream(signedFilePath);
+            OutputStream os = new FileOutputStream(getSignedFilePath());
             PdfReader reader = new PdfReader(filePath);
             if (!reader.isEncrypted()) {
                 MakeSignature.signDeferred(reader, signatureFieldName, os, container);

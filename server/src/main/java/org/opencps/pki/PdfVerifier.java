@@ -57,7 +57,7 @@ public class PdfVerifier extends BaseVerifier {
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.Verifier#verifySignature()
+     * @see org.opencps.pki.Verifier#getSignatureInfo()
      */
     @Override
     public List<SignatureInfo> getSignatureInfo(String filePath) {
@@ -74,7 +74,7 @@ public class PdfVerifier extends BaseVerifier {
     
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.Verifier#verifySignature()
+     * @see org.opencps.pki.Verifier#getSignatureInfo()
      */
     public List<SignatureInfo> getSignatureInfo(InputStream inputStream) {
         List<SignatureInfo> list = new ArrayList<SignatureInfo>();
