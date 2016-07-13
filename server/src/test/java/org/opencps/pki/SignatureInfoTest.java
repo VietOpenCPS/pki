@@ -37,81 +37,79 @@ public class SignatureInfoTest extends TestCase {
     private SignatureInfo signInfo;
     private X509Certificate cert;
 
-	/**
-	 * Create the test case
-	 */
-	public SignatureInfoTest(String testName) {
-		super(testName);
-	}
+    /**
+     * Create the test case
+     */
+    public SignatureInfoTest(String testName) {
+        super(testName);
+    }
 
-	protected void setUp() throws CertificateException, FileNotFoundException
-	{
+    protected void setUp() throws CertificateException, FileNotFoundException {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         cert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(certPath)));
 
         signInfo = new MockSignatureInfo(cert);
-	}
+    }
 
-	/**
+    /**
      * @return the suite of tests being tested
      */
-    public static Test suite()
-    {
+    public static Test suite() {
         return new TestSuite(SignatureInfoTest.class);
     }
     
     public void testGetCertificate() {
-    	assertEquals(cert, signInfo.getCertificate());
+        assertEquals(cert, signInfo.getCertificate());
     }
     
     public void testGetCertificateInfo() {
-    	assertTrue(signInfo.getCertificateInfo() instanceof CertificateInfo);
+        assertTrue(signInfo.getCertificateInfo() instanceof CertificateInfo);
     }
     
     public void testGetSignDate() {
-    	Calendar now = Calendar.getInstance();
-    	Calendar signDate = signInfo.getSignDate();
-    	assertEquals(signDate.get(Calendar.YEAR), now.get(Calendar.YEAR));
-    	assertEquals(signDate.get(Calendar.MONTH), now.get(Calendar.MONTH));
-    	assertEquals(signDate.get(Calendar.DAY_OF_YEAR), now.get(Calendar.DAY_OF_YEAR));
+        Calendar now = Calendar.getInstance();
+        Calendar signDate = signInfo.getSignDate();
+        assertEquals(signDate.get(Calendar.YEAR), now.get(Calendar.YEAR));
+        assertEquals(signDate.get(Calendar.MONTH), now.get(Calendar.MONTH));
+        assertEquals(signDate.get(Calendar.DAY_OF_YEAR), now.get(Calendar.DAY_OF_YEAR));
     }
     
     public void testGetTimeStamp() {
-    	Calendar now = Calendar.getInstance();
-    	Calendar timeStamp = signInfo.getTimeStamp();
-    	assertEquals(timeStamp.get(Calendar.YEAR), now.get(Calendar.YEAR));
-    	assertEquals(timeStamp.get(Calendar.MONTH), now.get(Calendar.MONTH));
-    	assertEquals(timeStamp.get(Calendar.DAY_OF_YEAR), now.get(Calendar.DAY_OF_YEAR));
+        Calendar now = Calendar.getInstance();
+        Calendar timeStamp = signInfo.getTimeStamp();
+        assertEquals(timeStamp.get(Calendar.YEAR), now.get(Calendar.YEAR));
+        assertEquals(timeStamp.get(Calendar.MONTH), now.get(Calendar.MONTH));
+        assertEquals(timeStamp.get(Calendar.DAY_OF_YEAR), now.get(Calendar.DAY_OF_YEAR));
     }
     
     public void testGetDigestAlgorithm() {
-    	assertEquals("RSA", signInfo.getDigestAlgorithm());
+        assertEquals("RSA", signInfo.getDigestAlgorithm());
     }
     
     public void testGetHashAlgorithm() {
-    	assertEquals("SHA1", signInfo.getHashAlgorithm());
+        assertEquals("SHA1", signInfo.getHashAlgorithm());
     }
     
     public void testIsVerify() throws GeneralSecurityException {
-    	assertFalse(signInfo.isVerify());
+        assertFalse(signInfo.isVerify());
     }
 
     public class MockSignatureInfo extends SignatureInfo {
 
-    	public MockSignatureInfo(X509Certificate cert) {
+        public MockSignatureInfo(X509Certificate cert) {
             this.cert = cert;
             certInfo = new CertificateInfo(cert);
             signDate = Calendar.getInstance();
             timeStamp = Calendar.getInstance();
             digestAlgorithm = "RSA";
             hashAlgorithm = "SHA1";
-    	}
+        }
 
-    	@Override
-		public Boolean isVerify() throws GeneralSecurityException {
-			return false;
-		}
-    	
+        @Override
+        public Boolean isVerify() throws GeneralSecurityException {
+            return false;
+        }
+        
     }
     
 }

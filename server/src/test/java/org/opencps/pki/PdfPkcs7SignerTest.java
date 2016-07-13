@@ -64,8 +64,7 @@ public class PdfPkcs7SignerTest extends TestCase {
     /**
      * @return the suite of tests being tested
      */
-    public static Test suite()
-    {
+    public static Test suite() {
         return new TestSuite(PdfPkcs7SignerTest.class);
     }
 

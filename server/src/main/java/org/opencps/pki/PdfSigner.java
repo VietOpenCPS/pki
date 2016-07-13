@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
@@ -189,8 +190,7 @@ public class PdfSigner extends BaseSigner {
      */
     @Override
     public Boolean sign(byte[] signature, String filePath) throws SignatureException {
-        ExternalSignatureContainer container = new Pkcs7GenerateSignatureContainer(this, signature);
-        return signExternal(container, filePath);
+        return signExternal(new Pkcs7GenerateSignatureContainer(this, signature), filePath);
     }
 
     /**
@@ -349,7 +349,7 @@ public class PdfSigner extends BaseSigner {
         }
         Boolean signed = false;
         try {
-            FileOutputStream os = new FileOutputStream(signedFilePath);
+            OutputStream os = new FileOutputStream(signedFilePath);
             PdfReader reader = new PdfReader(filePath);
             if (!reader.isEncrypted()) {
                 MakeSignature.signDeferred(reader, signatureFieldName, os, container);

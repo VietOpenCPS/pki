@@ -92,7 +92,7 @@ public class Pkcs7GenerateSignatureContainerTest extends TestCase {
 
         RandomAccessSource readerSource = reader.getSafeFile().createSourceView();
         @SuppressWarnings("resource")
-		InputStream rg = new RASInputStream(new RandomAccessSourceFactory().createRanged(readerSource, gaps));
+        InputStream rg = new RASInputStream(new RandomAccessSourceFactory().createRanged(readerSource, gaps));
 
         ExternalSignatureContainer container = new Pkcs7GenerateSignatureContainer(signer, extSignature);
         assertTrue(container.sign(rg).length > 0);

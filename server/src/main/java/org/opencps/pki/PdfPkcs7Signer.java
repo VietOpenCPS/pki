@@ -6,9 +6,6 @@ package org.opencps.pki;
 import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 
-import com.itextpdf.text.pdf.security.ExternalSignatureContainer;
-
-
 /**
  * @author nguyennv
  *
@@ -76,7 +73,6 @@ public class PdfPkcs7Signer extends PdfSigner {
      */
     @Override
     public Boolean sign(byte[] signature, String filePath) throws SignatureException {
-        ExternalSignatureContainer container = new Pksc7SignatureContainer(this, signature);
-        return signExternal(container, filePath);
+        return signExternal(new Pksc7SignatureContainer(this, signature), filePath);
     }
 }

@@ -29,10 +29,10 @@ public class PdfSignatureInfo extends SignatureInfo {
 
     private PdfPKCS7 pkcs7;
 
-	/**
-	 * Constructor
-	 */
-	public PdfSignatureInfo(PdfPKCS7 pkcs7) {
+    /**
+     * Constructor
+     */
+    public PdfSignatureInfo(PdfPKCS7 pkcs7) {
         this.pkcs7 = pkcs7;
         cert = pkcs7.getSigningCertificate();
         certInfo = new CertificateInfo(cert);
@@ -52,8 +52,8 @@ public class PdfSignatureInfo extends SignatureInfo {
     /**
      * Check signature is verified
      */
-	@Override
-	public Boolean isVerify() throws GeneralSecurityException {
-		return pkcs7.verify();
-	}
+    @Override
+    public Boolean isVerify() throws GeneralSecurityException {
+        return pkcs7.verify();
+    }
 }
