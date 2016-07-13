@@ -54,7 +54,7 @@ public abstract class BaseVerifier implements Verifier {
         try {
             ks = KeyStore.getInstance(KeyStore.getDefaultType());
         } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -70,7 +70,7 @@ public abstract class BaseVerifier implements Verifier {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(is);
             return new CertificateInfo(cert);
         } catch (CertificateException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -111,7 +111,7 @@ public abstract class BaseVerifier implements Verifier {
                 return false;
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 
