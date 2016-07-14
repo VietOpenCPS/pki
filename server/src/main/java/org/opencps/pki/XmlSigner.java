@@ -16,48 +16,45 @@
 */
 package org.opencps.pki;
 
-import java.security.KeyStore;
-import java.util.List;
-
 /**
- * Verifier for xml document
+ * Signer for xml document
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
-public class XMLVerifier extends BaseVerifier {
+public class XmlSigner extends BaseSigner {
 
     /**
      * Constructor
      */
-    public XMLVerifier() {
+    public XmlSigner() {
         super();
     }
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.Verifier#getSignatureInfo()
+     * @see org.opencps.pki.Signer#computeHash()
      */
     @Override
-    public List<SignatureInfo> getSignatureInfo(String filePath) {
+    public byte[] computeHash() {
         // TODO Auto-generated method stub
         return null;
     }
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.Verifier#verifySignature()
+     * @see org.opencps.pki.Signer#sign()
      */
     @Override
-    public Boolean verifySignature(String filePath) {
+    public Boolean sign(byte[] signature) {
         // TODO Auto-generated method stub
         return null;
     }
 
     /**
      * (non-Javadoc)
-     * @see org.opencps.pki.Verifier#verifySignature()
+     * @see org.opencps.pki.Signer#sign()
      */
     @Override
-    public Boolean verifySignature(String filePath, KeyStore ks) {
+    public Boolean sign(byte[] signature, String filePath) {
         // TODO Auto-generated method stub
         return null;
     }
