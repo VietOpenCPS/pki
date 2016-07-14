@@ -25,7 +25,6 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
-import java.security.Security;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -33,7 +32,6 @@ import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 import org.bouncycastle.util.io.pem.PemObject;
@@ -82,7 +80,7 @@ public class PdfSignerTest extends TestCase {
         signer = new PdfSigner(pdfPath, cert);
     }
 
-    public void testFilePath() {
+    public void testGetFilePaths() {
         assertEquals(pdfPath, signer.getOriginFilePath());
         assertEquals("./src/test/java/resources/opencps.temp.pdf", signer.getTempFilePath());
         assertEquals("./src/test/java/resources/opencps.signed.pdf", signer.getSignedFilePath());
