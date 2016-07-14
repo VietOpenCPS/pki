@@ -16,6 +16,16 @@
 */
 package org.opencps.pki;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
+import com.itextpdf.text.pdf.codec.Base64;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -24,6 +34,13 @@ import junit.framework.TestSuite;
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public class XmlSignerTest extends TestCase {
+    private static final String certPath = "./src/test/java/resources/cert.pem";
+//    private static final String keyPath = "./src/test/java/resources/key.pem";
+    private static final String xmlPath = "./src/test/java/resources/document.xml";
+
+    X509Certificate cert;
+    CertificateFactory cf;
+    XmlSigner signer;
 
     /**
      * Create the test case
@@ -38,8 +55,17 @@ public class XmlSignerTest extends TestCase {
     public static Test suite() {
         return new TestSuite(XmlSignerTest.class);
     }
-    
-    public void testXmlSigner() {
+
+    protected void setUp() throws CertificateException, FileNotFoundException {
+        cf = CertificateFactory.getInstance("X.509");
+        cert = (X509Certificate) cf.generateCertificate(new FileInputStream(new File(certPath)));
+        signer = new XmlSigner(xmlPath, cert);
+    }
+
+    public void testComputeHash() throws SignatureException {
+        byte[] hash = signer.computeHash();
+        System.out.println("Hash value:" + Base64.encodeBytes(hash));
+        System.out.println("Hash length:" + hash.length);
     }
 
 }

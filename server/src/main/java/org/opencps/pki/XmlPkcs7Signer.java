@@ -42,8 +42,8 @@ public class XmlPkcs7Signer extends XmlSigner {
     /**
      * Constructor
      */
-    public XmlPkcs7Signer(String filePath, X509Certificate cert, String tempFilePath, String signedFilePath) {
-        super(filePath, cert, tempFilePath, signedFilePath);
+    public XmlPkcs7Signer(String filePath, X509Certificate cert, String signedFilePath) {
+        super(filePath, cert, signedFilePath);
     }
 
     /**
