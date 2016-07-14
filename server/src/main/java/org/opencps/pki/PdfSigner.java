@@ -147,7 +147,7 @@ public class PdfSigner extends BaseSigner {
             PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { getCertificate() }, getHashAlgorithm().toString(), null, digest, false);
             return sgn.getAuthenticatedAttributeBytes(digestHash, null, null, CryptoStandard.CMS);
         } catch (Exception e) {
-            throw new SignatureException(e.getMessage());
+            throw new SignatureException(e.getMessage(), e);
         }
     }
 
@@ -285,7 +285,7 @@ public class PdfSigner extends BaseSigner {
             reader.close();
             os.close();
         } catch (Exception e) {
-            throw new SignatureException(e.getMessage());
+            throw new SignatureException(e.getMessage(), e);
         }
         return digestHash;
     }
@@ -308,7 +308,7 @@ public class PdfSigner extends BaseSigner {
                 signed = true;
             }
         } catch (Exception e) {
-            throw new SignatureException(e.getMessage());
+            throw new SignatureException(e.getMessage(), e);
         }
         return signed;
     }
@@ -331,7 +331,7 @@ public class PdfSigner extends BaseSigner {
                 bufferedImage = ImageIO.read(is);
             }
             catch (Exception e) {
-                throw new RuntimeException(e.getMessage());
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
         

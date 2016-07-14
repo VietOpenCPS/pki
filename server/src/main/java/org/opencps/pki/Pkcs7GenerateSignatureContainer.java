@@ -55,10 +55,21 @@ public class Pkcs7GenerateSignatureContainer implements ExternalSignatureContain
         this.signature = signature;
     }
 
+    /**
+     * Modifies the signature dictionary to suit the container. At least the keys PdfName.FILTER and 
+     * PdfName.SUBFILTER will have to be set.
+     * @param signDic the signature dictionary
+     */
     @Override
     public void modifySigningDictionary(PdfDictionary pd) {
     }
 
+    /**
+     * Produces the container with the signature.
+     * @param data the data to sign
+     * @return a container with the signature and other objects, like CRL and OCSP. The container will generally be a PKCS7 one.
+     * @throws GeneralSecurityException 
+     */
     @Override
     public byte[] sign(InputStream is) throws GeneralSecurityException {
         X509Certificate cert = signer.getCertificate();
@@ -75,7 +86,7 @@ public class Pkcs7GenerateSignatureContainer implements ExternalSignatureContain
         try {
             digestHash = DigestAlgorithms.digest(is, digest.getMessageDigest(signer.getHashAlgorithm().toString()));
         } catch (IOException e) {
-            throw new SignatureException(e.getMessage());
+            throw new SignatureException(e.getMessage(), e);
         }
 
         PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, signer.getHashAlgorithm().toString(), null, digest, false);

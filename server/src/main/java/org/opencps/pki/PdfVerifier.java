@@ -67,7 +67,7 @@ public class PdfVerifier extends BaseVerifier {
             list = getSignatureInfo(is);
             is.close();
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
         return list;
     }
@@ -87,7 +87,7 @@ public class PdfVerifier extends BaseVerifier {
                 list.add(new PdfSignatureInfo(pkcs7));
             }
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
         return list;
     }
@@ -124,7 +124,7 @@ public class PdfVerifier extends BaseVerifier {
             verified = verifySignature(is, ks);
             is.close();
         } catch (Exception e) {
-            throw new SignatureException(e.getMessage());
+            throw new SignatureException(e.getMessage(), e);
         }
         return verified;
     }
@@ -155,7 +155,7 @@ public class PdfVerifier extends BaseVerifier {
             }
             reader.close();
         } catch (Exception e) {
-            throw new SignatureException(e.getMessage());
+            throw new SignatureException(e.getMessage(), e);
         }
         return verified;
     }
