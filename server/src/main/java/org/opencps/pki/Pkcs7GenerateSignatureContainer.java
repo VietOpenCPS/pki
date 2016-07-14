@@ -86,7 +86,7 @@ public class Pkcs7GenerateSignatureContainer implements ExternalSignatureContain
         try {
             digestHash = DigestAlgorithms.digest(is, digest.getMessageDigest(signer.getHashAlgorithm().toString()));
         } catch (IOException e) {
-            throw new SignatureException(e.getMessage());
+            throw new SignatureException(e.getMessage(), e);
         }
 
         PdfPKCS7 sgn = new PdfPKCS7(null, new Certificate[] { cert }, signer.getHashAlgorithm().toString(), null, digest, false);
