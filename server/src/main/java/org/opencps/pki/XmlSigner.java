@@ -23,7 +23,10 @@ import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.XMLConstants;
 import javax.xml.crypto.MarshalException;
@@ -37,11 +40,12 @@ import javax.xml.crypto.dsig.SignatureMethod;
 import javax.xml.crypto.dsig.SignatureProperties;
 import javax.xml.crypto.dsig.SignatureProperty;
 import javax.xml.crypto.dsig.Transform;
+import javax.xml.crypto.dsig.XMLSignContext;
 import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureException;
 import javax.xml.crypto.dsig.XMLSignatureFactory;
 import javax.xml.crypto.dsig.dom.DOMSignContext;
 import javax.xml.crypto.dsig.keyinfo.KeyInfo;
-import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
 import javax.xml.crypto.dsig.keyinfo.KeyName;
 import javax.xml.crypto.dsig.keyinfo.KeyValue;
 import javax.xml.crypto.dsig.keyinfo.PGPData;
@@ -57,9 +61,9 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.apache.jcp.xml.dsig.internal.dom.DOMDigestMethod;
 import org.apache.jcp.xml.dsig.internal.dom.DOMKeyInfo;
-import org.apache.jcp.xml.dsig.internal.dom.DOMKeyInfoFactory;
 import org.apache.jcp.xml.dsig.internal.dom.DOMKeyValue;
 import org.apache.jcp.xml.dsig.internal.dom.DOMManifest;
+import org.apache.jcp.xml.dsig.internal.dom.DOMReference;
 import org.apache.jcp.xml.dsig.internal.dom.DOMSignatureMethod;
 import org.apache.jcp.xml.dsig.internal.dom.DOMSignatureProperties;
 import org.apache.jcp.xml.dsig.internal.dom.DOMSignatureProperty;
@@ -68,7 +72,7 @@ import org.apache.jcp.xml.dsig.internal.dom.DOMStructure;
 import org.apache.jcp.xml.dsig.internal.dom.DOMTransform;
 import org.apache.jcp.xml.dsig.internal.dom.DOMUtils;
 import org.apache.jcp.xml.dsig.internal.dom.DOMX509Data;
-import org.apache.jcp.xml.dsig.internal.dom.DOMXMLSignature;
+import org.apache.jcp.xml.dsig.internal.dom.Utils;
 import org.apache.jcp.xml.dsig.internal.dom.XMLDSigRI;
 import org.apache.jcp.xml.dsig.internal.dom.XmlWriter;
 import org.apache.jcp.xml.dsig.internal.dom.XmlWriterToTree;
@@ -83,6 +87,10 @@ public class XmlSigner extends BaseSigner {
     private Document document;
 
     private XMLSignatureFactory factory;
+    
+    private Map<String, XMLStructure> signatureIdMap;
+    
+    private String signatureId;
 
     /**
      * Constructor
@@ -100,6 +108,8 @@ public class XmlSigner extends BaseSigner {
      */
     public XmlSigner(String filePath, X509Certificate cert, String signedFilePath) {
         super(filePath, cert, null, signedFilePath);
+        signatureIdMap = new HashMap<String, XMLStructure>();
+        signatureId = UUID.randomUUID().toString().substring(24);
         factory = XMLSignatureFactory.getInstance("DOM", new XMLDSigRI());
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -120,27 +130,26 @@ public class XmlSigner extends BaseSigner {
             List<Transform> transforms = new ArrayList<Transform>();
             transforms.add(factory.newTransform(Transform.ENVELOPED, (TransformParameterSpec) null));
             
-            Reference reference = factory.newReference("", digestMethodSHA1, transforms, null, null);
-            
+            DOMReference reference = (DOMReference) factory.newReference("", digestMethodSHA1, transforms, null, null);
+
             DOMSignedInfo signedInfo = (DOMSignedInfo) factory.newSignedInfo(
                 factory.newCanonicalizationMethod(CanonicalizationMethod.INCLUSIVE, (C14NMethodParameterSpec) null),
                 factory.newSignatureMethod(SignatureMethod.RSA_SHA1, null),
                 Collections.singletonList(reference)
             );
+
+            DOMSignContext signContext = new DOMSignContext(XmlEmptyKey.getInstance(), document.getDocumentElement());
+
+            XmlWriterToTree xwriter = new XmlWriterToTree(Marshaller.getMarshallers(), signContext.getParent(), signContext.getNextSibling());
+            signedInfo.marshal(xwriter, DOMUtils.getSignaturePrefix(signContext), signContext);
             
-            DOMSignContext domSignContext = new DOMSignContext(XmlEmptyKey.getInstance(), document.getDocumentElement());
-            
-            KeyInfoFactory kif = new DOMKeyInfoFactory();
-            X509Data x509d = kif.newX509Data(Collections.singletonList(getCertificate()));
-            KeyInfo keyInfo = kif.newKeyInfo(Collections.singletonList(x509d));
-            
-            DOMXMLSignature signature = (DOMXMLSignature)factory.newXMLSignature(signedInfo, keyInfo, null, null, null);
-            XmlWriterToTree xwriter = new XmlWriterToTree(Marshaller.getMarshallers(), domSignContext.getParent(), domSignContext.getNextSibling());
-            signature.marshal(xwriter, DOMUtils.getSignaturePrefix(domSignContext), domSignContext);
+            List<Reference> references = signedInfo.getReferences();
+            for (Reference ref : references) {
+                ((DOMReference) ref).digest(signContext);
+            }
             
             ByteArrayOutputStream byteRange = new ByteArrayOutputStream();
-            
-            signedInfo.canonicalize(domSignContext, byteRange);
+            signedInfo.canonicalize(signContext, byteRange);
             return byteRange.toByteArray();
         } catch (Exception e) {
             throw new SignatureException(e.getMessage(), e);
@@ -179,6 +188,40 @@ public class XmlSigner extends BaseSigner {
      */
     public XMLSignatureFactory getSignatureFactory() {
         return factory;
+    }
+    
+    protected void digestReference(DOMReference ref, XMLSignContext signContext) throws XMLSignatureException {
+        String uri = ref.getURI();
+        if (Utils.sameDocumentURI(uri)) {
+            String parsedId = Utils.parseIdFromSameDocumentURI(uri);
+            if (parsedId != null && signatureIdMap.containsKey(parsedId)) {
+                XMLStructure xs = signatureIdMap.get(parsedId);
+                if (xs instanceof DOMReference) {
+                    digestReference((DOMReference)xs, signContext);
+                } else if (xs instanceof Manifest) {
+                    Manifest man = (Manifest)xs;
+                    List<Reference> manRefs = DOMManifest.getManifestReferences(man);
+                    for (int i = 0, size = manRefs.size(); i < size; i++) {
+                        digestReference((DOMReference)manRefs.get(i),
+                                        signContext);
+                    }
+                }
+            }
+            // if uri="" and there are XPath Transforms, there may be
+            // reference dependencies in the XPath Transform - so be on
+            // the safe side, and skip and do at end in the final sweep
+            if (uri.length() == 0) {
+                List<Transform> transforms = ref.getTransforms();
+                for (Transform transform : transforms) {
+                    String transformAlg = transform.getAlgorithm();
+                    if (transformAlg.equals(Transform.XPATH) ||
+                        transformAlg.equals(Transform.XPATH2)) {
+                        return;
+                    }
+                }
+            }
+        }
+        ref.digest(signContext);
     }
 
     private static class XmlEmptyKey implements Key {
