@@ -56,12 +56,13 @@ public class Pksc7SignatureContainerTest extends TestCase {
     }
     
     public void testSignatureContainer() throws FileNotFoundException, GeneralSecurityException {
-        PdfPKCS7 sgn = new PdfPKCS7(Base64.decode(encodedPkcs7), PdfName.ADBE_PKCS7_DETACHED, "BC");
+        byte[] pkcs7Signature = Base64.decode(encodedPkcs7);
+        PdfPKCS7 sgn = new PdfPKCS7(pkcs7Signature, PdfName.ADBE_PKCS7_DETACHED, "BC");
         X509Certificate cert = sgn.getSigningCertificate();
 
         PdfPkcs7Signer signer = new PdfPkcs7Signer(pdfPath, cert);
-        ExternalSignatureContainer container = new Pksc7SignatureContainer(signer, Base64.decode(encodedPkcs7));
-        assertEquals(encodedPkcs7, Base64.encodeBytes(container.sign(mock(InputStream.class))));
+        ExternalSignatureContainer container = new Pksc7SignatureContainer(signer, pkcs7Signature);
+        assertEquals(Helper.binToHex(pkcs7Signature), Helper.binToHex(container.sign(mock(InputStream.class))));
     }
     
     public void testInvalidSignatureContainer() throws CertificateException, FileNotFoundException {
