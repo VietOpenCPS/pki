@@ -81,12 +81,12 @@ public class PdfPkcs7Signer extends BaseSigner {
      */
     public PdfPkcs7Signer(String filePath, X509Certificate cert) {
         this(
-                filePath,
-                cert,
-                Helper.stripFileExtension(filePath) + ".temp.pdf",
-                Helper.stripFileExtension(filePath) + ".signed.pdf",
-                true
-            );
+            filePath,
+            cert,
+            Helper.stripFileExtension(filePath) + ".temp.pdf",
+            Helper.stripFileExtension(filePath) + ".signed.pdf",
+            true
+        );
     }
     
     /**
