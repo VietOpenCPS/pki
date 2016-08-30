@@ -16,9 +16,6 @@
 */
 package org.opencps.pki;
 
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mock;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
