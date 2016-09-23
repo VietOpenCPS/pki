@@ -22,7 +22,7 @@ import java.security.cert.X509Certificate;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
- * Base abstract class for singer
+ * Base abstract class for signer
  * @author Nguyen Van Nguyen <nguyennv@iwayvietnam.com>
  */
 public abstract class BaseSigner implements Signer {
