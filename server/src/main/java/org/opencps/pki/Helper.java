@@ -42,6 +42,10 @@ public class Helper {
 
     /**
      * Converts an array of bytes into an hexadecimal string
+     * @attribution : http://stackoverflow.com/a/9855338
+     * @original_question: http://stackoverflow.com/questions/9655181
+     * @author: maybeWeCouldStealAVan
+     * @author_detail: http://stackoverflow.com/users/1284661
      */
     public static String binToHex(byte[] data) {
         char[] hexChars = new char[data.length * 2];
