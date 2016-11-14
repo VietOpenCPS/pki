@@ -8,7 +8,7 @@
 (function($) {
 "use strict";
 var digidoc_mime = 'application/x-digidoc';
-var vgca_mime = 'application/x-cryptolib05plugin';
+var bcy_mime = 'application/x-cryptolib05plugin';
 
 function hasPlugin(mime) {
     if(navigator.mimeTypes && mime in navigator.mimeTypes) {
@@ -31,8 +31,8 @@ function loadSignaturePlugin(mime) {
     return document.getElementById(element);
 }
 
-function signvgca(signer) {
-    var plugin = loadSignaturePlugin(vgca_mime);
+function signBcy(signer) {
+    var plugin = loadSignaturePlugin(bcy_mime);
     if (plugin.valid) {
         var code = plugin.Sign(hexToBase64(signer.options.hash.hex));
         if (code === 0 || code === 7) {
@@ -114,8 +114,8 @@ $.extend($.signer, {
         if (window.hwcrypto && signer.options.backend === 'hwcrypto') {
             signHwCrypto(signer);
         }
-        else if (hasPlugin(vgca_mime) && signer.options.backend === 'vgca') {
-            signvgca(signer);
+        else if (hasPlugin(bcy_mime) && signer.options.backend === 'bcy') {
+            signBcy(signer);
         }
         return signer;
     }
